@@ -1,0 +1,16 @@
+{
+  "name": "ScienceHub \u2014 Ashu.Ayansh",
+  "short_name": "ScienceHub",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#050b10",
+  "theme_color": "#071017",
+  "description": "Personal Study OS",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
