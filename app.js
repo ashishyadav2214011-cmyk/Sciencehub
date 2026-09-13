@@ -56,7 +56,6 @@ function home(){
   <section class="section"><h2>Next Best Action</h2><div class="grid"><div class="card stat"><strong>${p}%</strong><span>Task completion</span></div><div class="card stat"><strong>${d}</strong><span>Revision due</span></div><div class="card stat"><strong>${db.good-db.bad}</strong><span>Practice score</span></div></div></section>
   <section class="section"><h2>Revision / Attention</h2>${revisionMini()}</section>
   <section class="section"><h2>Quick Access</h2><div class="grid">${["study","subjects","practice","learning","revision","progress"].map(x=>`<button class="card" onclick="go('${x}')">${icon(x)||"⚡"}<br><b>${label(x)||x}</b><div class="muted">Open</div></button>`).join("")}</div></section>
-  <section class="section"><h2>🎨 ScienceHub Identity</h2><div class="card"><b>3D Icon Lab</b><p class="muted">Interactive futuristic ScienceHub emblem showcase.</p><button class="btn secondary" onclick="location.href='./icon-lab.html'">Open Icon Lab</button></div></section>
   <section class="section"><h2>🤖 KuroVen</h2><div class="card"><b>Action Taker</b><p class="muted">I turn the current priority into the next executable study action.</p><button class="btn secondary" onclick="kuro()">What should I do now?</button></div></section>
   <section class="section"><h2>Today's Progress</h2><div class="card"><div class="progress"><i style="width:${p}%"></i></div><p class="muted">${db.tasks.filter(x=>x.done).length} of ${db.tasks.length} tasks completed • ${db.minutes} active study minutes</p></div></section>`;
 }

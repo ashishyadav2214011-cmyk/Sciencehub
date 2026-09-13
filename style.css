@@ -8,3 +8,6 @@ main{max-width:760px;margin:auto;padding:16px}.hero{border:1px solid #28506a;bor
 #drawer{position:fixed;inset:0;z-index:30;pointer-events:none}#drawer.show{pointer-events:auto;background:rgba(0,0,0,.55)}.drawerbox{position:absolute;right:0;top:0;bottom:0;width:min(88vw,370px);background:#081423;border-left:1px solid var(--line);padding:18px;overflow:auto}.drawerbox button{width:100%;text-align:left;margin:5px 0;background:#0d1d30;border:1px solid var(--line);border-radius:12px;padding:12px}
 #modal{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.65);padding:18px}.modalbox{max-width:620px;margin:8vh auto;background:#0a1727;border:1px solid var(--line);border-radius:20px;padding:18px;max-height:80vh;overflow:auto}.form{display:grid;gap:9px}.notice{padding:10px;border-radius:12px;background:#101f31;border:1px solid var(--line);color:#b9cce0;font-size:12px}
 @media(min-width:650px){main{padding:22px}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ScienceHub artwork is an app/PWA icon only; never render it as a Home-page visual. */
+.home-visual,.home-brand-visual,.hero-image{display:none!important}
