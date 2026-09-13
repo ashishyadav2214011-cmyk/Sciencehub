@@ -1,224 +1,42 @@
-const KEY="sciencehub-v2";
-const LEGACY="sciencehub-v1";
-const DEFAULT={tasks:[],notes:[],revision:[],events:[],minutes:0,good:0,bad:0,settings:{hero:true}};
-let db=loadDB(), current="home", timer={active:false,paused:false,start:0,elapsed:0,int:null};
-
-function loadDB(){
-  try{
-    const v=JSON.parse(localStorage.getItem(KEY)||"null");
-    if(v)return {...DEFAULT,...v,settings:{...DEFAULT.settings,...(v.settings||{})}};
-    const old=JSON.parse(localStorage.getItem(LEGACY)||"null");
-    if(old)return {...DEFAULT,...old,settings:{...DEFAULT.settings,...(old.settings||{})}};
-  }catch(e){}
-  return structuredClone(DEFAULT);
-}
-function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
-function esc(x){return String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function event(type,data={}){db.events.push({id:Date.now()+Math.random(),type,at:new Date().toISOString(),data})}
-function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(showToast.t);showToast.t=setTimeout(()=>t.classList.remove("show"),2200)}
-function go(p){current=p;closeDrawer();render();scrollTo({top:0,behavior:"smooth"})}
-function toggleMore(){document.getElementById("drawer").classList.toggle("show")}
-function closeDrawer(){document.getElementById("drawer").classList.remove("show")}
-
-function addTask(){
-  const title=document.getElementById("taskTitle")?.value.trim(); if(!title)return showToast("Add a specific task first");
-  const mins=Math.max(1,+document.getElementById("taskMins").value||45);
-  const priority=document.getElementById("taskPri").value;
-  db.tasks.push({id:Date.now(),title,minutes:mins,priority,done:false,createdAt:new Date().toISOString()});
-  event("TASK_CREATED",{title,priority,minutes:mins}); save(); showToast("Task added");
-}
-function completeTask(id){
-  const t=db.tasks.find(x=>x.id===id); if(!t||t.done)return;
-  t.done=true; db.minutes+=t.minutes; db.good+=2;
-  event("STUDY_SESSION_COMPLETED",{taskId:id,minutes:t.minutes}); save(); showToast("Mission completed +2");
-}
-function removeTask(id){db.tasks=db.tasks.filter(x=>x.id!==id);event("TASK_DELETED",{id});save();showToast("Task removed")}
-function addRevision(){
-  const title=document.getElementById("revTitle")?.value.trim()||"Review an important or weak concept";
-  db.revision.push({id:Date.now(),title,createdAt:new Date().toISOString()});
-  event("REVISION_ADDED",{title});save();showToast("Revision item added")
-}
-function completeRevision(id){db.revision=db.revision.filter(x=>x.id!==id);event("REVISION_COMPLETED",{id});db.good+=2;save();showToast("Revision completed")}
-function saveNote(){
-  const title=document.getElementById("noteTitle")?.value.trim()||"Untitled";
-  const body=document.getElementById("noteBody")?.value.trim(); if(!body)return showToast("Write a note first");
-  db.notes.unshift({id:Date.now(),title,body,createdAt:new Date().toISOString()});event("NOTE_CREATED",{title});save();showToast("Note saved")
-}
-async function shareNote(id){
-  const n=db.notes.find(x=>x.id===id);if(!n)return;
-  const text=`${n.title}\n\n${n.body}\n\nShared from ScienceHub`;
-  try{if(navigator.share)await navigator.share({title:n.title,text});else{await navigator.clipboard.writeText(text);showToast("Copied for sharing")}}
-  catch(e){}
-}
-function answer(ok){
-  if(ok){db.good+=2;event("QUESTION_ATTEMPTED",{correct:true});showToast("Correct • +2 progress")}
-  else{db.bad-=1;event("QUESTION_ATTEMPTED",{correct:false});showToast("Review the concept • -1 progress")}
-  save()
-}
-function startTimer(){
-  if(timer.active){if(timer.paused){timer.paused=false;timer.start=Date.now()-timer.elapsed;timer.int=setInterval(tick,500);tick()}return}
-  timer={active:true,paused:false,start:Date.now(),elapsed:0,int:setInterval(tick,500)};event("TIME_SESSION_STARTED");tick();showToast("Focus session started")
-}
-function pauseTimer(){if(!timer.active||timer.paused)return;timer.elapsed=Date.now()-timer.start;timer.paused=true;clearInterval(timer.int);tick();showToast("Paused")}
-function stopTimer(){
-  if(!timer.active)return;const ms=timer.paused?timer.elapsed:Date.now()-timer.start;
-  const mins=Math.max(1,Math.round(ms/60000));db.minutes+=mins;event("TIME_SESSION_COMPLETED",{minutes:mins});
-  timer={active:false,paused:false,start:0,elapsed:0,int:null};save();showToast(`${mins} minute session saved`)
-}
-function tick(){
-  const ms=timer.paused?timer.elapsed:(timer.active?Date.now()-timer.start:0),s=Math.floor(ms/1000),m=Math.floor(s/60),ss=s%60;
-  const el=document.getElementById("timerClock");if(el)el.textContent=String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0");
-}
-function openSearch(){
-  document.getElementById("modal").innerHTML=`<div class="modal"><div class="modalbox">
-  <h2>🌐 Global Search</h2><input id="globalQ" class="field" autofocus placeholder="Search tasks, notes, revisions, subjects..." oninput="runSearch(this.value)">
-  <div id="searchResults" class="list" style="margin-top:12px"><div class="empty">Search across your local ScienceHub data.</div></div>
-  <div class="modal-actions"><button class="secondary" onclick="closeModal()">Close</button></div></div></div>`;
-  document.getElementById("globalQ").focus()
-}
-function runSearch(q){
-  q=q.trim().toLowerCase();const r=document.getElementById("searchResults");if(!q){r.innerHTML='<div class="empty">Search across your local ScienceHub data.</div>';return}
-  const arr=[
-    ...db.tasks.map(x=>({type:"Task",title:x.title,meta:`${x.priority} • ${x.minutes} min`})),
-    ...db.notes.map(x=>({type:"Note",title:x.title,meta:x.body.slice(0,90)})),
-    ...db.revision.map(x=>({type:"Revision",title:x.title,meta:"Revision item"})),
-    ...["Biology","Physics","Chemistry","English","Hindi","Bioinformatics"].map(x=>({type:"Subject",title:x,meta:"ScienceHub subject"}))
-  ].filter(x=>(x.title+" "+x.meta).toLowerCase().includes(q));
-  r.innerHTML=arr.length?arr.slice(0,20).map(x=>`<div class="list-item"><div><b>${esc(x.title)}</b><div class="small">${x.type} • ${esc(x.meta)}</div></div><span>›</span></div>`).join(""):'<div class="empty">No matching ScienceHub item found.</div>'
-}
-function closeModal(){document.getElementById("modal").innerHTML=""}
-function openProfileMenu(){
-  document.getElementById("modal").innerHTML=`<div class="modal"><div class="modalbox">
-  <h2>👤 Ashu.Ayansh</h2><p class="muted">Personal Study OS • Class 11 Current</p>
-  <div class="list">
-    <div class="list-item"><span>📸 Home hero visual</span><b>${db.settings.hero?"ON":"OFF"}</b></div>
-    <div class="list-item"><span>🔕 Quiet Mode</span><b>ON</b></div>
-    <div class="list-item"><span>💾 Local data</span><b>${db.tasks.length+db.notes.length} items</b></div>
-  </div>
-  <div class="modal-actions"><button class="secondary" onclick="closeModal()">Close</button><button class="primary" onclick="settings()">Settings</button></div>
-  </div></div>`
-}
-function settings(){
-  document.getElementById("modal").innerHTML=`<div class="modal"><div class="modalbox">
-  <h2>⚙️ ScienceHub Settings</h2>
-  <p class="muted">Local-first • user-controlled • offline-ready</p>
-  <label class="list-item"><span>Personalized Home visual</span><input type="checkbox" ${db.settings.hero?"checked":""} onchange="db.settings.hero=this.checked;save()"></label>
-  <div class="btn-row"><button class="secondary" onclick="exportData()">📤 Export data</button><button class="secondary" onclick="resetData()">♻️ Reset local data</button></div>
-  <div class="modal-actions"><button class="secondary" onclick="closeModal()">Close</button></div>
-  </div></div>`
-}
-function exportData(){
-  const b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");
-  a.href=URL.createObjectURL(b);a.download="ScienceHub-AshuAyansh-V2.json";a.click();URL.revokeObjectURL(a.href);showToast("Data exported")
-}
-function resetData(){if(confirm("Delete all local ScienceHub V2 data?")){localStorage.removeItem(KEY);location.reload()}}
-
-function home(){
-  const pending=db.tasks.filter(x=>!x.done), mission=pending[0], completed=db.tasks.filter(x=>x.done).length;
-  const revision=db.revision.length, total=db.tasks.length+completed, accuracy=total?Math.round((db.good/(Math.max(1,db.good+Math.max(0,-db.bad))))*100):0;
-  const minutes=db.minutes;
-  return `<section class="page">
-  <section class="hero">
-    <div class="hero-media">${db.settings.hero?'<img src="home-hero.png" alt="ScienceHub personalized study hero">':''}</div>
-    <div class="hero-copy">
-      <div class="eyebrow">Good evening,</div>
-      <h1>Ashu.Ayansh 👋</h1>
-      <p>Discipline today, success tomorrow.</p>
-      <div class="hero-actions">
-        <button class="primary" onclick="go('study')">Start studying →</button>
-        <button class="secondary" onclick="openSearch()">⌕ Search ScienceHub</button>
-      </div>
-      <div class="hero-chip">Personal Study OS • Class 11 Current</div>
-    </div>
-  </section>
-
-  <div class="searchbar"><input placeholder="🌐 Search ScienceHub..." onclick="openSearch()" readonly><button class="secondary" onclick="openSearch()">Search</button></div>
-
-  <div class="grid3">
-    <article class="card mission">
-      <div class="bookmark">★</div><div class="label cyan">🎯 TODAY'S MISSION</div>
-      <div class="mission-main"><div><h2>${esc(mission?.title||"Create your first focused mission")}</h2><p>${mission?`${esc(mission.priority)} • ${mission.minutes} min`:"One clear task. One focused session."}</p>
-      <button class="primary" onclick="${mission?`go('study')`:`go('study')`}">${mission?"Start Mission":"Plan Mission"} ▷</button></div>
-      <div><div class="progress-ring"><b>${mission?"75":"0"}%</b></div><div class="small" style="text-align:center;margin-top:6px">Progress</div></div></div>
-    </article>
-
-    <article class="card mini"><div class="label gold">⚡ NEXT BEST ACTION</div><span class="mini-icon">⚛</span><h3>${esc(pending[0]?.title||"Create a focused task")}</h3><p>${pending[0]?"Do the highest-priority unfinished task.":"No pending task yet."}</p><button class="secondary" onclick="go('study')">Do Now →</button></article>
-
-    <article class="card mini"><div class="label purple">🔄 REVISION DUE</div><span class="mini-icon">◫</span><h3>${revision} Topic${revision===1?"":"s"}</h3><p>Use recall → practice → retest.</p><button class="secondary" onclick="go('revision')">Review Now →</button></article>
-
-    <article class="card mini"><div class="label blue">📅 UPCOMING</div><span class="mini-icon">⚗</span><h3>Plan your next test</h3><p>Connect exams to your Study Plan.</p><button class="secondary" onclick="go('academic')">View Plan →</button></article>
-
-    <article class="card stats">
-      <div class="stat"><span class="small">◷ Study Time</span><strong>${Math.floor(minutes/60)}h ${minutes%60}m</strong><div class="bar"><i style="width:${Math.min(100,Math.round(minutes/240*100))}%"></i></div><span class="small">/ 4h goal</span></div>
-      <div class="stat"><span class="small">▧ Tasks Done</span><strong>${completed}</strong><div class="bar"><i style="width:${Math.min(100,completed*20)}%"></i></div><span class="small">today</span></div>
-      <div class="stat"><span class="small">▣ Tests</span><strong>0</strong><div class="bar"><i style="width:0%"></i></div><span class="small">/ 2 goal</span></div>
-      <div class="stat"><span class="small">◎ Trend</span><strong>${db.good>=db.bad? "Good":"Needs work"}</strong><div class="bar"><i style="width:${Math.min(100,50+db.good*5)}%"></i></div><span class="small">${db.good} good • ${Math.max(0,-db.bad)} bad</span></div>
-      <div class="stat score"><span class="small">Daily Score</span><div class="score-ring"><span><b>${Math.max(0,Math.min(1000,500+db.good*80+minutes*2))}</b><small>/1000</small></span></div></div>
-    </article>
-
-    <article class="card attention"><div class="label red">⚠ NEEDS ATTENTION</div><h3>${pending.length?"Finish the oldest pending task":"Nothing urgent right now"}</h3><p>${pending.length?`${pending.length} pending task(s) need attention.`:"Keep momentum with a small next action."}</p><button class="secondary" onclick="go('study')">${pending.length?"Improve Now":"Add Task"} →</button></article>
-
-    <article class="card kuro"><div class="label purple">🖤 KuroVen (AI Coach)</div><div class="coach"><div class="kuro-avatar">◉</div><p>${mission?"Start with your highest-priority task. No extra planning—execute it now. 💪":"No task exists. Create one small, specific action and start."}</p></div></article>
-
-    <article class="card focus-strip">
-      <div><span>🔥</span> <b>${Math.min(99,Math.floor(minutes/30))}</b> Day Streak</div>
-      <div><span class="small">Today's Focus</span><br><b>Biology • Physics</b></div>
-      <div><span class="small">Daily Goal</span><br><b>${Math.min(100,Math.round(minutes/240*100))}%</b></div>
-    </article>
-  </div>
-  </section>`
-}
-
-function study(){
-  return `<section class="page"><div class="section-title"><h2>📅 Study Plan</h2><button class="primary" onclick="document.getElementById('taskTitle').focus()">+ Quick Add</button></div>
-  <div class="card"><div class="grid3">
-    <div style="grid-column:span 2"><input id="taskTitle" class="field" placeholder="e.g. Biology — revise Cell Cycle"></div>
-    <input id="taskMins" class="field" type="number" min="1" value="45" placeholder="Minutes">
-    <select id="taskPri" class="field"><option>Critical</option><option>High</option><option selected>Normal</option><option>Optional</option></select>
-  </div><button class="primary" onclick="addTask()">Add Task</button></div>
-  <div class="section-title"><h2>Today's Tasks</h2><span class="muted">${db.tasks.filter(x=>!x.done).length} pending</span></div>
-  <div class="list">${db.tasks.length?db.tasks.map(t=>`<div class="list-item ${t.done?"done":""}"><div><b>${esc(t.title)}</b><div class="small">${esc(t.priority)} • ${t.minutes} min</div></div><div>${t.done?"✓":`<button class="primary" onclick="completeTask(${t.id})">Done</button>`}<button class="secondary" onclick="removeTask(${t.id})">×</button></div></div>`).join(""):'<div class="empty">No tasks. Add one specific action.</div>'}</div>
-  <div class="section-title"><h2>⏱️ Focus Timer</h2></div><div class="card" style="text-align:center"><div id="timerClock" style="font-size:50px;font-variant-numeric:tabular-nums">00:00</div><button class="primary" onclick="startTimer()">Start</button><button class="secondary" onclick="pauseTimer()">Pause</button><button class="secondary" onclick="stopTimer()">Stop</button></div></section>`
-}
-function subjects(){
-  const s=["Biology","Physics","Chemistry","English","Hindi"];
-  return `<section class="page"><div class="section-title"><h2>📖 Subjects</h2></div><div class="grid3">${s.map(x=>`<div class="card"><div class="label cyan">${x}</div><h3>Class 11</h3><p>Chapters → Topics → Concepts</p><button class="secondary" onclick="showToast('${x}: subject workspace ready')">Open Subject →</button></div>`).join("")}
-  <div class="card"><div class="label green">🧬 BIOINFORMATICS</div><h3>Long-term track</h3><p>Programming • Biology • Genomics • Statistics • Projects</p></div>
-  <div class="card"><div class="label purple">📚 CLASS 12 — FUTURE</div><h3>Connected foundations</h3><p>Class 11 first; deeper Class 12 links when useful.</p></div></div></section>`
-}
-function practice(){
-  return `<section class="page"><div class="section-title"><h2>📝 Practice</h2></div><div class="card"><div class="label cyan">Quick Science Check</div><h3>Which molecule carries genetic information in most living organisms?</h3><div class="btn-row"><button class="secondary" onclick="answer(false)">RNA</button><button class="primary" onclick="answer(true)">DNA</button><button class="secondary" onclick="answer(false)">ATP</button><button class="secondary" onclick="answer(false)">Protein</button></div></div>
-  <div class="grid3">${["Quiz","MCQs","Question Bank","PYQs 2020→Latest","Chapter Tests","Subject Tests","Mock Tests","Competitive","Mistake Book"].map(x=>`<div class="card"><h3>${x}</h3><p class="small">Practice → result → mistake tracking</p></div>`).join("")}</div></section>`
-}
-function revision(){
-  return `<section class="page"><div class="section-title"><h2>🔄 Revision</h2></div><div class="card"><p>Revision priority should come from learning history, recall, mistakes, practice, tests and exam urgency.</p><input id="revTitle" class="field" placeholder="What should be revised?"><button class="primary" onclick="addRevision()">Add Revision</button></div>
-  <div class="list">${db.revision.length?db.revision.map(r=>`<div class="list-item"><div><b>${esc(r.title)}</b><div class="small">Due / personal revision item</div></div><button class="primary" onclick="completeRevision(${r.id})">Done</button></div>`).join(""):'<div class="empty">No revision items due.</div>'}</div></section>`
-}
-function progress(){
-  return `<section class="page"><h2>📊 Progress</h2><div class="grid3"><div class="card"><div class="small">Tasks completed</div><h2>${db.tasks.filter(x=>x.done).length}</h2></div><div class="card"><div class="small">Study minutes</div><h2>${db.minutes}</h2></div><div class="card"><div class="small">Internal trend</div><h2>${db.good} good / ${Math.max(0,-db.bad)} bad</h2></div></div><div class="card"><h3>Progress Intelligence</h3><p>What happened → Why → What is weak → What improved → What next.</p></div></section>`
-}
-function timePage(){
-  return `<section class="page"><h2>⏱️ Time Tracking</h2><div class="card" style="text-align:center"><div id="timerClock" style="font-size:55px">${timer.active?"00:00":"00:00"}</div><button class="primary" onclick="startTimer()">Start</button><button class="secondary" onclick="pauseTimer()">Pause</button><button class="secondary" onclick="stopTimer()">Stop</button><p class="muted">Tracked total: ${db.minutes} minutes</p></div><div class="grid3">${["Overview","Daily Timeline","Weekly Report","Monthly Report","Subject Analysis","Chapter Analysis","Topic Analysis","Planned vs Actual","Focus Analysis"].map(x=>`<div class="card"><h3>${x}</h3><p class="small">Time Intelligence</p></div>`).join("")}</div></section>`
-}
-function myspace(){
-  return `<section class="page"><div class="section-title"><h2>🗂️ My Space</h2><span class="muted">Personal only</span></div><div class="card"><input id="noteTitle" class="field" placeholder="Note title"><textarea id="noteBody" class="textarea" placeholder="Your personal note..."></textarea><button class="primary" onclick="saveNote()">Save Note</button></div><div class="list">${db.notes.length?db.notes.map(n=>`<div class="card"><div class="section-title" style="margin:0 0 8px"><b>${esc(n.title)}</b><button class="secondary" onclick="shareNote(${n.id})">📤 Share</button></div><p>${esc(n.body)}</p></div>`).join(""):'<div class="empty">Your notes, saved questions, resources and projects live here.</div>'}</div></section>`
-}
-function simple(title,body){return `<section class="page"><h2>${title}</h2><div class="card"><p>${body}</p></div></section>`}
-
-function render(){
-  const drawerItems=[["academic","🎓 Academic"],["learning","🧠 Learning"],["revision","🔄 Revision"],["progress","📊 Progress"],["school","🏫 School"],["time","⏱️ Time Tracking"],["career","🧭 Career"],["opportunities","🌟 PCB Opportunities"],["myspace","🗂️ My Space"],["settings","⚙️ Settings"]];
-  document.getElementById("drawer").innerHTML=drawerItems.map(([p,t])=>`<button onclick="${p==="settings"?"settings()":"go('"+p+"')"}">${t}</button>`).join("");
-  const views={
-    home,study,subjects,practice,revision,progress,time:timePage,myspace,
-    academic:()=>simple("🎓 Academic","Subjects • Syllabus • Exams • Exam Planner • Marks • Targets • Exam Calendar"),
-    learning:()=>simple("🧠 Learning","Concept Maps • Flashcards • My Notes • Resource Hub • Ask ScienceHub"),
-    school:()=>simple("🏫 School","Schedule • Teachers • Homework • Assignments • Practicals"),
-    career:()=>simple("🧭 Career","Bioinformatics roadmap • College • Skills • Projects • Internships • Research"),
-    opportunities:()=>simple("🌟 PCB Opportunities","Scholarships • Courses/Colleges • Research • Internships • Government • Competitions • Exam Tracker • Future Scope • Future Possibilities")
-  };
-  document.getElementById("app").innerHTML=(views[current]||home)();
-  document.querySelectorAll(".bottom-nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===current));
-  if(current==="study"||current==="time")tick();
-}
-render();
-if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+const K="sciencehub-v1", SUBJECTS=["Biology","Physics","Chemistry","English","Hindi"];
+const CH={Biology:["The Living World","Biological Classification","Plant Kingdom","Animal Kingdom"],Physics:["Units and Measurements","Motion in a Straight Line","Motion in a Plane","Laws of Motion"],Chemistry:["Some Basic Concepts of Chemistry","Structure of Atom","Classification of Elements","Chemical Bonding"],English:["Reading Skills","Writing Skills","Grammar","Literature"],Hindi:["पठन कौशल","लेखन कौशल","व्याकरण","साहित्य"]};
+const DEF={tasks:[],notes:[],revision:[],events:[],minutes:0,good:0,bad:0,subjects:{},school:[],opportunities:[],questions:[],mistakes:[],flashcards:[],conceptMaps:[],resources:[]};
+let old=JSON.parse(localStorage.getItem(K)||"{}"),db={...DEF,...old,subjects:old.subjects||{},questions:old.questions||[],mistakes:Array.isArray(old.mistakes)?old.mistakes:[],flashcards:old.flashcards||[],conceptMaps:old.conceptMaps||[],resources:old.resources||[]},current="home",selectedSubject="Biology",practiceFilter="All",tm={active:false,paused:false,start:0,elapsed:0,int:null};
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const statuses=["Not Started","Learning","Learned","Revision Due","Strong","Weak","Mastered"];
+function save(){localStorage.setItem(K,JSON.stringify(db));render()} function ev(type,data={}){db.events.push({id:Date.now()+Math.random(),type,at:new Date().toISOString(),data})}
+function go(p){current=p;closeDrawer();render();scrollTo(0,0)} function more(){const d=document.getElementById("drawer");d.classList.toggle("show");d.setAttribute("aria-hidden",!d.classList.contains("show"))} function closeDrawer(){document.getElementById("drawer").classList.remove("show")} function closeModal(){document.getElementById("modal").className=""}
+function subjectData(s){if(!db.subjects[s])db.subjects[s]={chapters:{}};for(const c of CH[s]||[])db.subjects[s].chapters[c]??={status:"Not Started",topics:[]};return db.subjects[s]} SUBJECTS.forEach(subjectData);
+function chapterOptions(s,selected=""){return (CH[s]||[]).map(c=>`<option ${c===selected?"selected":""}>${esc(c)}</option>`).join("")}
+function setStatus(s,c,v){subjectData(s).chapters[c].status=v;ev("CHAPTER_STATUS_UPDATED",{subject:s,chapter:c,status:v});save()}
+function addTopic(s,c){const e=document.getElementById("topicInput"),v=e?.value.trim();if(!v)return;subjectData(s).chapters[c].topics.push({id:Date.now(),title:v,status:"Not Started"});ev("TOPIC_CREATED",{subject:s,chapter:c,title:v});save()}
+function setTopicStatus(s,c,id,v){const t=subjectData(s).chapters[c].topics.find(x=>x.id==id);if(t){t.status=v;ev("TOPIC_STATUS_UPDATED",{subject:s,chapter:c,topicId:id,status:v});save()}}
+function addTask(){const title=document.getElementById("task")?.value.trim();if(!title)return;const sub=document.getElementById("taskSub").value;db.tasks.push({id:Date.now(),title,subject:sub,chapter:document.getElementById("taskChap").value,priority:document.getElementById("pri").value,minutes:+document.getElementById("mins").value||45,done:false,createdAt:new Date().toISOString()});ev("TASK_CREATED",{title});save()}
+function done(id){const t=db.tasks.find(x=>x.id==id);if(!t||t.done)return;t.done=true;db.minutes+=t.minutes;db.good+=2;if(t.chapter)subjectData(t.subject).chapters[t.chapter].status="Learning";ev("TASK_COMPLETED",{id});save()}
+function del(id){if(confirm("Remove this task?")){db.tasks=db.tasks.filter(x=>x.id!=id);ev("TASK_DELETED",{id});save()}}
+function addRev(title="Review an important or weak concept",subject="",chapter=""){db.revision.push({id:Date.now(),title,subject,chapter});ev("REVISION_ADDED",{title,subject,chapter});save()} function completeRev(id){db.revision=db.revision.filter(x=>x.id!=id);ev("REVISION_COMPLETED",{id});save()}
+function answer(qid,choice){const q=db.questions.find(x=>x.id==qid);if(!q)return;const ok=choice===q.answer;if(ok)db.good+=2;else{db.bad-=1;if(!db.mistakes.some(x=>x.questionId==qid))db.mistakes.push({id:Date.now(),questionId:qid,text:q.text,subject:q.subject,chapter:q.chapter});if(!db.revision.some(x=>x.chapter===q.chapter&&x.title.includes("Retry")))addRev("Retry: "+q.chapter,q.subject,q.chapter)}ev("QUESTION_ATTEMPTED",{qid,correct:ok});save();alert(ok?"Correct. +2":"Not correct. −1. Added to Mistake Book.")}
+function addQuestion(){const text=document.getElementById("qtext")?.value.trim(),answer=document.getElementById("qanswer")?.value.trim();if(!text||!answer)return;const subject=document.getElementById("qsub").value,chapter=document.getElementById("qchap").value;const opts=[answer,...["Option B","Option C","Option D"].map(x=>x)];db.questions.push({id:Date.now(),text,answer,subject,chapter,options:opts});ev("QUESTION_CREATED",{subject,chapter});save()}
+function note(){const a=document.getElementById("nt"),b=document.getElementById("nb");if(!a.value&&!b.value)return;db.notes.unshift({id:Date.now(),title:a.value||"Untitled",body:b.value});ev("NOTE_CREATED");save()}
+function addFlashcard(){const f=document.getElementById("fcFront")?.value.trim(),b=document.getElementById("fcBack")?.value.trim();if(!f||!b)return;db.flashcards.unshift({id:Date.now(),front:f,back:b,subject:document.getElementById("fcSub").value,chapter:document.getElementById("fcChap").value,known:false});ev("FLASHCARD_CREATED");save()}
+function toggleCard(id){const x=db.flashcards.find(x=>x.id==id);if(x){x.known=!x.known;ev("FLASHCARD_REVIEWED",{id,known:x.known});save()}}
+function addMap(){const title=document.getElementById("mapTitle")?.value.trim(),body=document.getElementById("mapBody")?.value.trim();if(!title||!body)return;db.conceptMaps.unshift({id:Date.now(),title,body,subject:document.getElementById("mapSub").value,chapter:document.getElementById("mapChap").value});ev("CONCEPT_MAP_CREATED");save()}
+function addResource(){const title=document.getElementById("resTitle")?.value.trim(),url=document.getElementById("resUrl")?.value.trim();if(!title||!url)return;db.resources.unshift({id:Date.now(),title,url,subject:document.getElementById("resSub").value});ev("RESOURCE_SAVED");save()}
+function share(id){const n=db.notes.find(x=>x.id==id);if(!n)return;const text=n.title+"\n\n"+n.body;if(navigator.share)navigator.share({title:n.title,text}).catch(()=>{});else navigator.clipboard?.writeText(text).then(()=>alert("Copied for sharing."))}
+function start(){if(tm.active){if(tm.paused){tm.paused=false;tm.start=Date.now()-tm.elapsed}else return}else{tm={active:true,paused:false,start:Date.now(),elapsed:0,int:null};ev("TIME_SESSION_STARTED")}tm.int=setInterval(tick,500);tick()} function pause(){if(!tm.active||tm.paused)return;tm.elapsed=Date.now()-tm.start;tm.paused=true;clearInterval(tm.int);tick()} function stop(){if(!tm.active)return;const m=Math.max(1,Math.round((tm.paused?tm.elapsed:Date.now()-tm.start)/60000));db.minutes+=m;ev("TIME_SESSION_COMPLETED",{minutes:m});tm={active:false,paused:false,start:0,elapsed:0,int:null};save()} function tick(){const s=Math.floor((tm.paused?tm.elapsed:Date.now()-tm.start)/1000),e=document.querySelector(".clock");if(e)e.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+function search(q){const b=document.getElementById("searchresults");if(!b)return;q=q.toLowerCase().trim();if(!q){b.innerHTML="";return}const a=[...db.tasks.map(x=>["Task",x.title,"study"]),...db.notes.map(x=>["Note",x.title,"myspace"]),...db.flashcards.map(x=>["Flashcard",x.front,"learning"]),...db.conceptMaps.map(x=>["Concept Map",x.title,"learning"]),...db.resources.map(x=>["Resource",x.title,"learning"]),...SUBJECTS.map(x=>["Subject",x,"subjects"]),...SUBJECTS.flatMap(s=>CH[s].map(c=>["Chapter",c,"subjects"]))].filter(x=>x[1].toLowerCase().includes(q)).slice(0,15);b.innerHTML=a.length?a.map(x=>`<div class="result"><span class="pill">${x[0]}</span><b>${esc(x[1])}</b><button class="secondary" onclick="go('${x[2]}')">Open</button></div>`).join(""):"<div class='empty'>No matching item.</div>"}
+function settings(){document.getElementById("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>⚙️ Settings</h2><button class="secondary" onclick="closeModal()">✕</button></div><p>Local-first • offline-ready</p><button onclick="exportData()">📤 Export data</button><label class="card">📥 Import backup<input type="file" accept=".json" onchange="importData(event)"></label><button class="secondary" onclick="confirmReset()">♻️ Reset local data</button></div>`;document.getElementById("modal").className="modal"}
+function exportData(){const a=document.createElement("a"),b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});a.href=URL.createObjectURL(b);a.download="ScienceHub-AshuAyansh.json";a.click()} function importData(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{db={...DEF,...JSON.parse(r.result)};save();closeModal();alert("Backup imported.")}catch{alert("Invalid backup.")}};r.readAsText(f)} function confirmReset(){if(confirm("Reset local ScienceHub data?")){localStorage.removeItem(K);location.reload()}}
+function home(){const p=db.tasks.find(x=>!x.done);return `<section class="page"><div class="hero"><div class="muted">Personal Study OS</div><h1>Good Evening, Ashu.Ayansh.</h1><p class="muted">Understand → Practice → Measure → Improve → Execute.</p></div><input placeholder="🌐 Search ScienceHub..." oninput="search(this.value)"><div id="searchresults" class="searchresults"></div><div class="grid"><div class="card wide"><small>🎯 TODAY'S MISSION</small><h2>${esc(p?.title||"Create your first study task")}</h2><button onclick="go('study')">${p?"START":"PLAN"}</button></div><div class="card"><small>🔄 REVISION</small><h3>${db.revision.length} due</h3><button class="secondary" onclick="go('revision')">Review</button></div><div class="card wide"><small>🖤 KUROVEN</small><p>${p?"Start the highest-priority unfinished task now.":"Create one small, specific task."}</p></div></div></section>`}
+function study(){return `<section class="page"><h2>📅 Study</h2><div class="card"><input id="task" placeholder="Specific study action"><div class="grid"><select id="taskSub" onchange="document.getElementById('taskChap').innerHTML=chapterOptions(this.value)">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select><select id="taskChap">${chapterOptions("Biology")}</select><select id="pri"><option>Critical</option><option>High</option><option selected>Normal</option><option>Optional</option></select><input id="mins" type="number" value="45" min="1"></div><button onclick="addTask()">Add Task</button></div>${db.tasks.map(t=>`<div class="card item ${t.done?'done':''}"><span><b>${esc(t.title)}</b><small>${esc(t.subject||'General')} • ${esc(t.chapter||'')}</small></span><span>${t.done?'✓':`<button onclick="done(${t.id})">Done</button>`}<button class="secondary" onclick="del(${t.id})">×</button></span></div>`).join("")||'<div class="card empty">No tasks yet.</div>'}</section>`}
+function subjects(){const d=subjectData(selectedSubject);return `<section class="page"><h2>📖 Subjects → Chapters → Topics</h2><div class="tabs">${SUBJECTS.map(s=>`<button class="${s==selectedSubject?'':'secondary'}" onclick="selectedSubject='${s}';render()">${s}</button>`).join("")}</div>${Object.entries(d.chapters).map(([c,x])=>`<div class="card"><div class="row"><b>${esc(c)}</b><select onchange="setStatus('${selectedSubject}','${c}',this.value)">${statuses.map(v=>`<option ${v==x.status?'selected':''}>${v}</option>`).join("")}</select></div>${x.topics.map(t=>`<div class="item"><span>• ${esc(t.title)}</span><select onchange="setTopicStatus('${selectedSubject}','${c}',${t.id},this.value)">${statuses.map(v=>`<option ${v==t.status?'selected':''}>${v}</option>`).join("")}</select></div>`).join("")}<div class="row"><input id="topicInput" placeholder="Add topic"><button onclick="addTopic('${selectedSubject}','${c}')">+ Topic</button><button class="secondary" onclick="addRev('Review: ${c}','${selectedSubject}','${c}')">Revision</button></div></div>`).join("")}<div class="card"><b>Future:</b> Class 12 + Bioinformatics</div></section>`}
+function learning(){return `<section class="page"><h2>🧠 Learning Lab</h2><div class="card"><h3>📝 My Notes</h3><input id="nt" placeholder="Note title"><textarea id="nb" placeholder="Write what you understood..."></textarea><button onclick="note()">Save Note</button></div><div class="card"><h3>🃏 Flashcards</h3><div class="row"><input id="fcFront" placeholder="Front / Question"><input id="fcBack" placeholder="Back / Answer"></div><div class="row"><select id="fcSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select><select id="fcChap">${chapterOptions("Biology")}</select><button onclick="addFlashcard()">+ Add</button></div>${db.flashcards.slice(0,8).map(x=>`<div class="card item"><span><b>${esc(x.front)}</b><small>${esc(x.back)} • ${x.subject}</small></span><button onclick="toggleCard(${x.id})">${x.known?'Known ✓':'Review'}</button></div>`).join("")||'<p class="muted">No flashcards yet.</p>'}</div><div class="card"><h3>🗺️ Concept Maps</h3><input id="mapTitle" placeholder="Concept map title"><textarea id="mapBody" placeholder="Core idea → connection → example → exception"></textarea><div class="row"><select id="mapSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select><select id="mapChap">${chapterOptions("Biology")}</select><button onclick="addMap()">Save Map</button></div>${db.conceptMaps.map(x=>`<div class="item"><b>${esc(x.title)}</b><small>${esc(x.body)}</small></div>`).join("")}</div><div class="card"><h3>🔗 Resource Hub</h3><div class="row"><input id="resTitle" placeholder="Resource name"><input id="resUrl" placeholder="https://..."><select id="resSub">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select><button onclick="addResource()">Save</button></div>${db.resources.map(x=>`<div class="item"><b>${esc(x.title)}</b><a href="${esc(x.url)}" target="_blank" rel="noopener">Open ↗</a></div>`).join("")}</div><div class="card"><h3>🤖 Ask ScienceHub</h3><p class="muted">This local build can organize your study data. Real AI answering/search will be connected in a later AI layer.</p></div></section>`}
+function practice(){if(!db.questions.length)db.questions=[{id:1,text:"Which molecule carries genetic information in most living organisms?",answer:"DNA",subject:"Biology",chapter:"The Living World",options:["DNA","RNA","ATP","Protein"]}];const qs=practiceFilter==="All"?db.questions:db.questions.filter(q=>q.subject===practiceFilter);return `<section class="page"><h2>📝 Practice Lab</h2><div class="tabs"><button class="${practiceFilter==='All'?'':'secondary'}" onclick="practiceFilter='All';render()">All</button>${SUBJECTS.map(s=>`<button class="${practiceFilter===s?'':'secondary'}" onclick="practiceFilter='${s}';render()">${s}</button>`).join("")}</div>${qs.slice(0,8).map(q=>`<div class="card"><small>${esc(q.subject)} • ${esc(q.chapter)}</small><h3>${esc(q.text)}</h3>${q.options.map(o=>`<button onclick="answer(${q.id},'${esc(o)}')">${esc(o)}</button>`).join("")}</div>`).join("")}<div class="card"><h3>➕ Question Bank</h3><input id="qtext" placeholder="Question"><input id="qanswer" placeholder="Correct answer"><div class="row"><select id="qsub" onchange="document.getElementById('qchap').innerHTML=chapterOptions(this.value)">${SUBJECTS.map(s=>`<option>${s}</option>`).join("")}</select><select id="qchap">${chapterOptions("Biology")}</select><button onclick="addQuestion()">Save</button></div><div class="notice">Scoring: Bad −1 • Correct +2. Mistakes automatically enter Mistake Book + Revision.</div></div><div class="card"><h3>📕 Mistake Book (${db.mistakes.length})</h3>${db.mistakes.map(m=>`<div class="item"><span>${esc(m.text)}<small>${esc(m.subject)} • ${esc(m.chapter)}</small></span></div>`).join("")||'<p class="muted">No mistakes yet.</p>'}</div></section>`}
+function revision(){return `<section class="page"><h2>🔄 Revision</h2><div class="card"><button onclick="addRev()">+ Add revision</button></div>${db.revision.map(x=>`<div class="card item"><span>🔄 ${esc(x.title)}<small>${esc(x.subject||'')} ${esc(x.chapter||'')}</small></span><button onclick="completeRev(${x.id})">Done</button></div>`).join("")||'<div class="card empty">No revision due.</div>'}</section>`}
+function progress(){const total=db.tasks.length,d=db.tasks.filter(x=>x.done).length,p=total?Math.round(d/total*100):0;return `<section class="page"><h2>📊 Progress</h2><div class="stats"><div class="card"><b>${d}</b><small>Tasks done</small></div><div class="card"><b>${db.minutes}</b><small>Minutes</small></div><div class="card"><b>${db.good}</b><small>Correct / good</small></div><div class="card"><b>${db.bad}</b><small>Bad</small></div></div><div class="card"><h3>Overall: ${p}%</h3><div class="bar"><i style="width:${p}%"></i></div></div>${SUBJECTS.map(s=>{let a=db.tasks.filter(t=>t.subject==s),n=a.filter(t=>t.done).length;return `<div class="card item"><b>${s}</b><span>${n}/${a.length}</span></div>`}).join("")}</section>`}
+function timePage(){return `<section class="page"><h2>⏱️ Time Tracking</h2><div class="card timer"><div class="clock">00:00</div><button onclick="start()">Start</button><button onclick="pause()">Pause</button><button onclick="stop()">Stop</button><p>${tm.active?(tm.paused?'Paused':'Live session'):'No live session'}</p></div><div class="card">Total recorded: ${db.minutes} min</div></section>`}
+function myspace(){return `<section class="page"><h2>🗂️ My Space</h2><div class="card"><p>Learning data is now searchable and stored locally.</p>${db.notes.map(n=>`<div class="card"><div class="row"><b>${esc(n.title)}</b><button class="secondary" onclick="share(${n.id})">📤 Share</button></div><p>${esc(n.body)}</p></div>`).join("")||'<div class="empty">Your notes appear here.</div>'}</div></section>`}
+function school(){return `<section class="page"><h2>🏫 School</h2><div class="card">School foundation remains available. Full homework/teacher workflow is a later core layer.</div></section>`}
+function basic(t,b){return `<section class="page"><h2>${t}</h2><div class="card">${b}</div></section>`}
+function render(){document.getElementById("drawer").innerHTML=[["academic","🎓 Academic"],["learning","🧠 Learning"],["revision","🔄 Revision"],["progress","📊 Progress"],["school","🏫 School"],["time","⏱️ Time Tracking"],["career","🧭 Career"],["opportunities","🌟 PCB Opportunities"],["myspace","🗂️ My Space"]].map(x=>`<button onclick="go('${x[0]}')">${x[1]}</button>`).join("");const v={home,study,subjects,practice,revision,progress,school,time:timePage,myspace,learning,academic:()=>basic("🎓 Academic","Class 11 is active. Subjects now contain chapter status, topics and connected study actions."),career:()=>basic("🧭 Career","Class 11 → Class 12 → Bioinformatics → Programming + Biology → Projects."),opportunities:()=>basic("🌟 PCB Opportunities","Verified scholarships, colleges, research, internships and exam tracker will be added in the web-connected layer.")};document.getElementById("app").innerHTML=v[current]?.()||home();if(current==="time")tick()}
+render();if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});

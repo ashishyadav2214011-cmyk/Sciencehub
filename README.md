@@ -1,20 +1,17 @@
-# ScienceHub V2 — Ashu.Ayansh
+# ScienceHub — Step 3: Learning + Practice
 
-Home V2 is a functional upgrade of the ScienceHub V1 foundation.
+This build continues Step 2 without deleting the existing local data key (`sciencehub-v1`).
 
-Included:
-- Home V2 visual direction based on the supplied reference image
-- Optional personalized hero visual (`home-hero.png`)
-- Today's Mission / Next Best Action / Revision Due / Needs Attention
-- Today's Snapshot and internal progress trend
-- KuroVen action card
-- Global local search
-- Study tasks + focus timer
-- Subjects, Practice, Revision, Progress, Time Tracking and My Space
-- Native Share API with clipboard fallback
-- LocalStorage persistence
-- Offline service-worker cache
-- Export/reset local data
+## Added
+- Learning Lab: My Notes, Flashcards, Concept Maps, Resource Hub
+- Global search now includes learning items
+- Practice Lab with subject filters and multiple saved questions
+- Question creation connected to subject/chapter
+- Mistake Book and automatic Revision trigger
+- Correct +2 / Bad -1 scoring
+- Dynamic subject → chapter selectors in Study and Practice
+- Existing Subjects → Chapters → Topics system retained
+- Local export/import retained
 
-Important:
-This is still a client-side V2 prototype/foundation. The full locked backend engines, cloud database, AI services, live Exam Tracker verification, and multi-device sync are not yet implemented.
+## Still not production-complete
+Real AI, cloud sync, verified live opportunities/exam data, advanced spaced-repetition engine, authentication/security and backend integration are later layers.

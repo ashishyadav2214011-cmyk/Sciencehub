@@ -3,41 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#071017">
-<meta name="description" content="ScienceHub — Personal Study OS for Ashu.Ayansh">
+<meta name="theme-color" content="#0b0f16">
+<meta name="description" content="ScienceHub — Ashu.Ayansh personal Study OS">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg">
 <link rel="stylesheet" href="style.css">
-<title>ScienceHub V2 — Ashu.Ayansh</title>
+<title>ScienceHub — Ashu.Ayansh</title>
 </head>
 <body>
-<div id="toast" class="toast"></div>
-
-<header class="topbar">
-  <div class="brand">
-    <img src="icon.svg" alt="" class="brand-icon">
-    <div><div class="brand-name">Science<span>Hub</span></div><div class="tagline">Study Smarter. Score Higher.</div></div>
-  </div>
-  <div class="top-actions">
-    <button class="icon-btn" onclick="openSearch()" aria-label="Search">⌕</button>
-    <button class="icon-btn notif" onclick="showToast('No new notifications')" aria-label="Notifications">♧<i></i></button>
-    <button class="profile" onclick="openProfileMenu()">
-      <span class="avatar">A</span><b>Ashu.Ayansh</b><span>⌄</span>
-    </button>
-  </div>
+<header>
+  <div class="brand">◈ <b>ScienceHub</b></div>
+  <div class="user">Ashu.Ayansh</div>
+  <button class="iconbtn" onclick="settings()">⚙️</button>
 </header>
-
 <main id="app"></main>
-
-<nav class="bottom-nav">
-  <button data-page="home" onclick="go('home')">⌂<small>Home</small></button>
-  <button data-page="study" onclick="go('study')">▣<small>Study Plan</small></button>
-  <button data-page="subjects" onclick="go('subjects')">◫<small>Subjects</small></button>
-  <button data-page="practice" onclick="go('practice')">✎<small>Practice</small></button>
-  <button data-page="more" onclick="toggleMore()">▦<small>More</small></button>
+<nav>
+  <button onclick="go('home')">🏠<small>Home</small></button>
+  <button onclick="go('study')">📅<small>Study</small></button>
+  <button onclick="go('subjects')">📖<small>Subjects</small></button>
+  <button onclick="go('practice')">📝<small>Practice</small></button>
+  <button onclick="more()">☰<small>More</small></button>
 </nav>
-
-<div id="drawer" class="drawer"></div>
+<div id="drawer" class="drawer" aria-hidden="true"></div>
 <div id="modal"></div>
 <script src="app.js"></script>
 </body>
