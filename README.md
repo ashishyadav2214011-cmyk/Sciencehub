@@ -1,17 +1,45 @@
-# ScienceHub — Step 3: Learning + Practice
+# ScienceHub — Step 4 + Step 5 Integrated
 
-This build continues Step 2 without deleting the existing local data key (`sciencehub-v1`).
+This package combines the Home/Personalization layer and the Revision Engine on top of the local-first ScienceHub foundation.
 
-## Added
-- Learning Lab: My Notes, Flashcards, Concept Maps, Resource Hub
-- Global search now includes learning items
-- Practice Lab with subject filters and multiple saved questions
-- Question creation connected to subject/chapter
-- Mistake Book and automatic Revision trigger
-- Correct +2 / Bad -1 scoring
-- Dynamic subject → chapter selectors in Study and Practice
-- Existing Subjects → Chapters → Topics system retained
-- Local export/import retained
+## Implemented in this package
+- Home V2 command center
+- Global local search
+- Today's Mission → Next Best Action
+- Revision attention on Home
+- KuroVen action prompt
+- Subjects → Chapters → Status
+- Study tasks linked to subjects/chapters
+- Revision due queue
+- Mistake → automatic revision trigger
+- Revision completion → follow-up review
+- Live Recall using browser speech recognition when supported
+- Practice scoring: Correct/OK +2, Bad −1
+- Local notes, flashcards, concept maps, resources
+- Progress snapshot
+- Export/import JSON backup
+- PWA/service worker
+- Mobile-first UI
 
-## Still not production-complete
-Real AI, cloud sync, verified live opportunities/exam data, advanced spaced-repetition engine, authentication/security and backend integration are later layers.
+## Important
+This is still a client-side/local-first build. It is NOT a finished production cloud Study OS.
+Not yet included: authentication, cloud database, multi-device sync, real AI provider integration, verified live opportunities/exam ingestion, advanced spaced-repetition algorithms, production security/observability.
+
+## GitHub upload
+Replace the root files:
+- index.html
+- app.js
+- style.css
+- sw.js
+- manifest.json
+- icon.svg
+- README.md
+
+Do NOT delete the repository. Keep any existing `home-hero.png` and `ScienceHub.zip` unless intentionally replacing them later.
+
+## ScienceHub Identity / Icon update
+- Added `sciencehub-icon.png` (512×512) as the primary PWA/app icon.
+- Added `sciencehub-icon-192.png` for installability compatibility.
+- Added `icon-lab.html`, an optional interactive 3D ScienceHub icon showcase.
+- The 3D lab uses pointer capture for more reliable mobile drag behavior and keeps the JavaScript comments valid (`//` instead of HTML `<!-- -->` inside `<script>`).
+- The launcher/PWA icon is intentionally static; the 3D lab remains a separate showcase page so it does not slow down normal app startup.

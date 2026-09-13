@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ScienceHub — 3D Icon Lab</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#050914;color:#eaf6ff;font-family:system-ui,sans-serif}canvas{display:block;width:100%;height:100%}
+.panel{position:fixed;z-index:2;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border:1px solid #24415d;border-radius:16px;background:rgba(7,15,27,.72);backdrop-filter:blur(12px)}
+.panel b{letter-spacing:.04em}.controls{display:flex;gap:7px;flex-wrap:wrap}.controls button,.controls input{border:1px solid #2a4762;background:#0c1a2b;color:#eaf6ff;border-radius:10px;padding:8px 10px}.hint{position:fixed;z-index:2;bottom:16px;left:50%;transform:translateX(-50%);padding:8px 12px;border-radius:999px;background:rgba(7,15,27,.7);border:1px solid #24415d;color:#9fb5ca;font-size:12px}
+</style>
+</head>
+<body>
+<div class="panel"><b>⚛️ ScienceHub · 3D Icon Lab</b><div class="controls"><button id="theme">Neon</button><button id="spin">Auto-spin: ON</button><button id="reset">Reset</button><button onclick="location.href='./'">← App</button></div></div>
+<div class="hint">Drag to rotate • Pinch/scroll to zoom</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script>
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x050914);
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);camera.position.set(0,0,7);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
+scene.add(new THREE.AmbientLight(0x8bbcff,.55));
+const key=new THREE.PointLight(0x61d8ff,3,18);key.position.set(3,3,5);scene.add(key);
+const fill=new THREE.PointLight(0x9d7bff,2.5,15);fill.position.set(-4,-2,2);scene.add(fill);
+const group=new THREE.Group();scene.add(group);
+const frame=new THREE.Mesh(new THREE.BoxGeometry(4.6,4.6,.55),new THREE.MeshPhysicalMaterial({color:0x101c2d,metalness:.8,roughness:.22,transparent:true,opacity:.95}));group.add(frame);
+const ringMat=new THREE.MeshBasicMaterial({color:0x61d8ff,transparent:true,opacity:.8});
+for(let r=1.55;r<=2.15;r+=.3){const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.018,10,128),ringMat);ring.rotation.x=Math.PI/2;group.add(ring)}
+const dna=new THREE.Group();group.add(dna);
+const tubeMat=new THREE.MeshStandardMaterial({color:0x9d7bff,emissive:0x36208f,emissiveIntensity:1.8,metalness:.35,roughness:.2});
+const nodeMat=new THREE.MeshStandardMaterial({color:0x61d8ff,emissive:0x0c6f9d,emissiveIntensity:2,metalness:.4,roughness:.15});
+for(let i=0;i<72;i++){
+  const t=i/71*Math.PI*4-Math.PI*2, y=(i/71-0.5)*3.1, rad=0.72, x=Math.cos(t)*rad, z=Math.sin(t)*rad;
+  for(const side of [1,-1]){const a=new THREE.Mesh(new THREE.SphereGeometry(.055,10,10),nodeMat);a.position.set(x*side,y,z*side);dna.add(a)}
+  if(i%3===0){const rod=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.44,8),tubeMat);rod.rotation.z=Math.PI/2;rod.position.set(0,y,0);rod.rotation.y=t;dna.add(rod)}
+}
+const helixA=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(Array.from({length:100},(_,i)=>{const t=i/99*Math.PI*4-Math.PI*2;return new THREE.Vector3(Math.cos(t)*.72,(i/99-.5)*3.1,Math.sin(t)*.72)})),64,.035,8,false),tubeMat);dna.add(helixA);
+const helixB=helixA.clone();helixB.scale.x=-1;dna.add(helixB);
+const particles=new THREE.Group();group.add(particles);const pm=new THREE.MeshBasicMaterial({color:0x8ee8ff});for(let i=0;i<180;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.012,5,5),pm);p.position.set((Math.random()-.5)*6,(Math.random()-.5)*6,(Math.random()-.5)*4);particles.add(p)}
+let auto=true,down=false,lastX=0,lastY=0;
+renderer.domElement.addEventListener('pointerdown',e=>{down=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture?.(e.pointerId)});
+renderer.domElement.addEventListener('pointerup',e=>{down=false;renderer.domElement.releasePointerCapture?.(e.pointerId)});
+renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;group.rotation.y+=(e.clientX-lastX)*.008;group.rotation.x+=(e.clientY-lastY)*.008;lastX=e.clientX;lastY=e.clientY});
+renderer.domElement.addEventListener('wheel',e=>{camera.position.z=Math.max(4,Math.min(10,camera.position.z+e.deltaY*.004))},{passive:true});
+document.getElementById('spin').onclick=()=>{auto=!auto;document.getElementById('spin').textContent='Auto-spin: '+(auto?'ON':'OFF')};
+document.getElementById('reset').onclick=()=>{group.rotation.set(0,0,0);camera.position.set(0,0,7)};
+const themes=[{name:'Neon',a:0x61d8ff,b:0x9d7bff,bg:0x050914},{name:'Solar',a:0xffd166,b:0xff7c91,bg:0x140b05},{name:'Cyber',a:0x5effb1,b:0x61d8ff,bg:0x04110c}];let ti=0;
+document.getElementById('theme').onclick=()=>{ti=(ti+1)%themes.length;const t=themes[ti];key.color.setHex(t.a);fill.color.setHex(t.b);ringMat.color.setHex(t.a);nodeMat.color.setHex(t.a);tubeMat.color.setHex(t.b);scene.background.setHex(t.bg);document.getElementById('theme').textContent=t.name};
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const dt=clock.getDelta();if(auto)group.rotation.y+=dt*.22;particles.rotation.y+=dt*.03;renderer.render(scene,camera)}animate();
+</script>
+</body></html>
