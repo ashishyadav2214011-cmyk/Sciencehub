@@ -43,3 +43,5 @@ Do NOT delete the repository. Keep any existing `home-hero.png` and `ScienceHub.
 - Added `icon-lab.html`, an optional interactive 3D ScienceHub icon showcase.
 - The 3D lab uses pointer capture for more reliable mobile drag behavior and keeps the JavaScript comments valid (`//` instead of HTML `<!-- -->` inside `<script>`).
 - The launcher/PWA icon is intentionally static; the 3D lab remains a separate showcase page so it does not slow down normal app startup.
+
+- Updated the primary ScienceHub icon assets with the supplied ScienceHub emblem artwork.
