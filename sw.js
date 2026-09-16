@@ -1,4 +1,4 @@
-const CACHE="sciencehub-v68-integrated";
+const CACHE="sciencehub-v69-homehero-icon";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon.svg","./sciencehub-icon.png","./sciencehub-icon-192.png"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(self.clients.claim()));

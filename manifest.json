@@ -1,11 +1,11 @@
 {
-  "name": "ScienceHub \u2014 Ashu.Ayansh",
+  "name": "ScienceHub — Ashu.Ayansh",
   "short_name": "ScienceHub",
-  "start_url": "./",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#07101c",
-  "theme_color": "#08111f",
-  "description": "Personal mobile-first Study OS",
+  "background_color": "#0b0f16",
+  "theme_color": "#0b0f16",
+  "description": "Personal Study OS",
   "icons": [
     {
       "src": "sciencehub-icon-192.png",
@@ -15,7 +15,7 @@
     },
     {
       "src": "sciencehub-icon.png",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
     },
@@ -23,7 +23,7 @@
       "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

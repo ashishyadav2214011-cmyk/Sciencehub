@@ -49,3 +49,9 @@ Do NOT delete the repository. Keep any existing `home-hero.png` and `ScienceHub.
 
 ## Step 6–8 integration
 Integrated local-first Intelligence Center, tracking/opportunity storage, World Knowledge notes, schema versioning, and service-worker cache refresh. Existing localStorage data is retained. Fresh external information remains internet-dependent and must be verified before use.
+
+
+### Home Hero + App Icon fix
+- `home-hero.png` = supplied personal Home hero image.
+- `sciencehub-icon.png` / `sciencehub-icon-192.png` = supplied ScienceHub app icon only.
+- The icon is not used as the Home hero.

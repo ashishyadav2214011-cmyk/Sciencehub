@@ -44,30 +44,23 @@ function nextAction(){
   const weak=db.chapters.find(x=>x.status==="Weak"); if(weak)return {title:"Recover: "+weak.name,why:"Weak chapter needs attention",action:`quickRevision('${weak.id}')`};
   return {title:"Create today's first task",why:"Your queue is clear",action:"go('study')"}
 }
-function home(){
-  const act=nextAction(), d=dueRevisions().length, p=pct();
-  return `<div class="hero">
-    <div class="eyebrow">PERSONAL STUDY OS • CLASS 11</div>
-    <h1>Good evening, Ashu.Ayansh 👋</h1>
-    <p>Understand → Practice → Measure → Improve → Execute.</p>
-    <div class="search"><input id="globalSearch" placeholder="Search ScienceHub…" value="${esc(searchTerm)}" oninput="globalSearch(this.value)"><button class="btn" onclick="doSearch()">Search</button></div>
-  </div>
-  <section class="section"><div class="card mission"><div><span class="tag">TODAY'S MISSION</span><h2 style="margin:7px 0">${esc(act.title)}</h2><div class="muted">${esc(act.why)}</div></div><button class="btn" onclick="${act.action}">Start</button></div></section>
-  <section class="section"><h2>Next Best Action</h2><div class="grid"><div class="card stat"><strong>${p}%</strong><span>Task completion</span></div><div class="card stat"><strong>${d}</strong><span>Revision due</span></div><div class="card stat"><strong>${db.good-db.bad}</strong><span>Practice score</span></div></div></section>
-  <section class="section"><h2>Revision / Attention</h2>${revisionMini()}</section>
-  <section class="section"><h2>Quick Access</h2><div class="grid">${["study","subjects","practice","learning","revision","progress"].map(x=>`<button class="card" onclick="go('${x}')">${icon(x)||"⚡"}<br><b>${label(x)||x}</b><div class="muted">Open</div></button>`).join("")}</div></section>
-  <section class="section"><h2>🤖 KuroVen</h2><div class="card"><b>Action Taker</b><p class="muted">I turn the current priority into the next executable study action.</p><button class="btn secondary" onclick="kuro()">What should I do now?</button></div></section>
-  <section class="section"><h2>Today's Progress</h2><div class="card"><div class="progress"><i style="width:${p}%"></i></div><p class="muted">${db.tasks.filter(x=>x.done).length} of ${db.tasks.length} tasks completed • ${db.minutes} active study minutes</p></div></section>`;
-}
-function revisionMini(){const a=dueRevisions().slice(0,3);if(!a.length)return `<div class="card goodtxt">✨ No revision is due right now. Keep learning.</div>`;return `<div class="list">${a.map(r=>`<div class="item"><div class="row"><b>${esc(r.title||r.topic||"Revision")}</b><button class="btn good" onclick="completeRevision('${r.id}')">Done</button></div><div class="muted">${esc(r.subject||"")}${r.chapter?" • "+esc(r.chapter):""}</div></div>`).join("")}</div>`}
-function globalSearch(v){searchTerm=v; if(v.length>1) renderSearch(v)}
-function doSearch(){renderSearch(searchTerm)}
-function renderSearch(q){if(!q||q.length<2)return;const z=q.toLowerCase();const out=[];
- db.chapters.filter(x=>(x.name+" "+x.subject).toLowerCase().includes(z)).forEach(x=>out.push(`📚 ${x.subject} — ${x.name}`));
- db.notes.filter(x=>(x.title+" "+x.body).toLowerCase().includes(z)).forEach(x=>out.push(`🗒️ ${x.title}`));
- db.tasks.filter(x=>x.title.toLowerCase().includes(z)).forEach(x=>out.push(`📅 ${x.title}`));
- const box=document.getElementById("searchResults");if(box)box.innerHTML=out.length?`<div class="card list">${out.slice(0,8).map(esc).map(x=>`<div class="item">${x}</div>`).join("")}</div>`:`<div class="notice">No local match.</div>`
-}
+function home(){let p=db.tasks.find(x=>!x.done),d=db.tasks.filter(x=>x.done).length;return `<section class="page">
+<div class="home-hero">
+<img src="home-hero.png" alt="ScienceHub Home">
+<div class="home-hero-content">
+<div class="muted">Personal Study OS</div>
+<h1>Good study session, Ashu.Ayansh.</h1>
+<p>Study • Learn • Grow</p>
+</div>
+</div>
+<input placeholder="🌐 Search ScienceHub..." oninput="search(this.value)">
+<div class="grid">
+<div class="card wide"><small>🎯 TODAY'S MISSION</small><h2>${esc(p?.title||"Create your first study task")}</h2><p>${p?`${p.priority} • ${p.minutes} min`:"One clear task. One focused session."}</p><button onclick="go('study')">${p?"START":"PLAN"}</button></div>
+<div class="card"><small>⚡ NEXT BEST ACTION</small><h3>${esc(p?.title||"Create a focused task")}</h3></div>
+<div class="card"><small>🔄 REVISION DUE</small><h3>${db.revision.length} item(s)</h3><button class="secondary" onclick="go('revision')">Review</button></div>
+<div class="card wide"><small>📊 TODAY</small><h3>${db.minutes} min • ${d} tasks</h3></div>
+<div class="card wide"><small>🖤 KUROVEN</small><p>${p?"Stop planning. Start the highest-priority unfinished task now.":"No task exists. Create one small, specific task."}</p></div>
+</div></section>`}
 function study(){return `<section><div class="row"><div><div class="eyebrow">STUDY</div><h1>Plan → Focus → Finish</h1></div><button class="btn" onclick="openTaskForm()">+ Task</button></div><div id="taskForm"></div><div class="section list">${db.tasks.length?db.tasks.map(t=>`<div class="item ${t.done?"done":""}"><div class="row"><b>${esc(t.title)}</b><span class="tag">${esc(t.priority||"normal")}</span></div><div class="muted">${esc(t.subject||"General")} ${t.chapter?"• "+esc(t.chapter):""} • ${t.minutes||0} min</div><div class="actions">${!t.done?`<button class="btn good" onclick="doneTask('${t.id}')">Complete +2</button>`:"<span class='goodtxt'>✓ Completed</span>"}<button class="btn secondary" onclick="delTask('${t.id}')">Remove</button></div></div>`).join(""):`<div class="card">No tasks yet. Add one small executable task.</div>`}</div></section>`}
 function openTaskForm(){document.getElementById("taskForm").innerHTML=`<div class="card form section"><input id="taskTitle" placeholder="e.g. Biology — Plant Kingdom diagrams"><select id="taskSubject">${subjects.map(s=>`<option>${s}</option>`).join("")}</select><select id="taskChapter"><option value="">No chapter</option></select><input id="taskMins" type="number" value="45" min="5"><select id="taskPriority"><option>high</option><option selected>normal</option><option>low</option></select><button class="btn" onclick="addTask()">Add task</button></div>`;fillChapters("taskSubject","taskChapter")}
 function fillChapters(a,b){const s=document.getElementById(a),c=document.getElementById(b);if(!s||!c)return;c.innerHTML=`<option value="">No chapter</option>`+db.chapters.filter(x=>x.subject===s.value).map(x=>`<option>${esc(x.name)}</option>`).join("");s.onchange=()=>fillChapters(a,b)}
