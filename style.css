@@ -11,3 +11,11 @@ main{max-width:760px;margin:auto;padding:16px}.hero{border:1px solid #28506a;bor
 
 /* ScienceHub artwork is an app/PWA icon only; never render it as a Home-page visual. */
 .home-visual,.home-brand-visual,.hero-image{display:none!important}
+
+
+/* === Step 6–8 Integration Center === */
+.sh68-panel{margin:18px auto;max-width:1100px;padding:18px;border:1px solid rgba(120,190,255,.22);border-radius:22px;background:linear-gradient(145deg,rgba(12,25,45,.94),rgba(7,12,24,.94));box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.sh68-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.sh68-head h2{margin:4px 0;font-size:1.25rem}.sh68-head p{margin:0;opacity:.72}.sh68-kicker{font-size:.72rem;letter-spacing:.14em;opacity:.7}
+.sh68-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-top:15px}.sh68-grid article{padding:13px;border-radius:15px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08)}.sh68-grid article b{font-size:.82rem;opacity:.72}.sh68-grid article div{margin-top:8px;font-size:1.15rem}
+.sh68-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.sh68-actions button,.sh68-head button{border:1px solid rgba(140,210,255,.28);border-radius:12px;padding:9px 12px;background:rgba(30,70,110,.35);color:inherit}
+@media(max-width:520px){.sh68-panel{margin:12px 8px;padding:14px;border-radius:18px}.sh68-head h2{font-size:1.05rem}}

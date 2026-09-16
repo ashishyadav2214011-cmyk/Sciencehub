@@ -113,3 +113,98 @@ function kuro(){const a=nextAction();alert("KuroVen: Start now → "+a.title+"\\
 function render(){let html=current==="home"?home():current==="study"?study():current==="subjects"?subjectsPage():current==="practice"?practice():current==="learning"?learning():current==="notes"?notes():current==="flash"?flash():current==="maps"?maps():current==="resources"?resources():current==="revision"?revision():current==="mistakes"?mistakes():current==="progress"?progress():current==="academic"?academic():current==="school"?school():current==="opportunities"?opportunities():current==="time"?time():current==="space"?space():current.startsWith("subject:")?subjectPage(current.slice(8)):home();document.getElementById("app").innerHTML=html}
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 render();
+
+
+/* === ScienceHub Step 6: Intelligence Center === */
+(function(){
+  const KEY='sciencehub-v1';
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}};
+  const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
+  function getNextAction(x){
+    const due=(x.revision||[]).filter(v=>!v.done);
+    const tasks=(x.tasks||[]).filter(v=>!v.done);
+    if(due.length) return ['Revision is due','Start the highest-priority revision now.'];
+    if(tasks.length) return ['Complete your next study task',tasks[0].title||'Continue your planned study.'];
+    if((x.bad||0)>0) return ['Review your mistakes','Open Mistake Book and repair one weak area.'];
+    return ['Set today’s mission','Create one clear goal and start it.'];
+  }
+  window.ScienceHubIntelligence={
+    snapshot:function(){
+      const x=load(), a=getNextAction(x);
+      return {nextAction:a, openTasks:(x.tasks||[]).filter(v=>!v.done).length, dueRevision:(x.revision||[]).filter(v=>!v.done).length};
+    }
+  };
+})();
+
+
+/* === ScienceHub Step 7: Tracking & Opportunities === */
+(function(){
+  const KEY='sciencehub-v1';
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}};
+  const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
+  const init=()=>{
+    const x=load();
+    x.goals=Array.isArray(x.goals)?x.goals:[];
+    x.examTracker=Array.isArray(x.examTracker)?x.examTracker:[];
+    x.opportunities=Array.isArray(x.opportunities)?x.opportunities:[];
+    x.minutes=Number(x.minutes||0);
+    save(x); return x;
+  };
+  window.ScienceHubTracking={
+    addGoal:function(title){const x=init();x.goals.push({id:Date.now(),title,done:false});save(x);},
+    addExam:function(name,date,status){const x=init();x.examTracker.push({id:Date.now(),name,date:date||'',status:status||'Upcoming'});save(x);},
+    saveOpportunity:function(title,type){const x=init();x.opportunities.push({id:Date.now(),title,type:type||'PCB',savedAt:new Date().toISOString()});save(x);},
+    summary:function(){const x=init();return {minutes:x.minutes,goals:x.goals.length,exams:x.examTracker.length,opportunities:x.opportunities.length};}
+  };
+})();
+
+
+/* === ScienceHub Step 8: World Knowledge & Data Hardening === */
+(function(){
+  const KEY='sciencehub-v1';
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}};
+  const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
+  const x=load();
+  x.worldKnowledge=Array.isArray(x.worldKnowledge)?x.worldKnowledge:[];
+  x.schemaVersion=8;
+  save(x);
+  window.ScienceHubWorld={
+    saveNote:function(title,summary){
+      const d=load();
+      d.worldKnowledge=Array.isArray(d.worldKnowledge)?d.worldKnowledge:[];
+      d.worldKnowledge.push({id:Date.now(),title,summary:summary||'',savedAt:new Date().toISOString()});
+      d.schemaVersion=8; save(d);
+    },
+    count:function(){return (load().worldKnowledge||[]).length;}
+  };
+})();
+
+
+/* === Step 6–8 UI === */
+(function(){
+  function mount(){
+    if(document.getElementById('sh68')) return;
+    const host=document.querySelector('main')||document.body;
+    const s=document.createElement('section');
+    s.id='sh68'; s.className='sh68-panel';
+    s.innerHTML='<div class="sh68-head"><div><span class="sh68-kicker">STEP 6–8</span><h2>Intelligence & Future Center</h2><p>Decide → Track → Save → Learn</p></div><button id="sh68-refresh">Refresh</button></div>'+
+      '<div class="sh68-grid"><article><b>Next Best Action</b><div id="sh68-action">—</div></article><article><b>Open Tasks</b><div id="sh68-tasks">0</div></article><article><b>Due Revision</b><div id="sh68-revision">0</div></article><article><b>Saved Opportunities</b><div id="sh68-opps">0</div></article><article><b>World Notes</b><div id="sh68-world">0</div></article></div>'+
+      '<div class="sh68-actions"><button id="sh68-goal">+ Goal</button><button id="sh68-exam">+ Exam</button><button id="sh68-opp">+ PCB Opportunity</button><button id="sh68-worldadd">+ World Note</button></div>';
+    host.prepend(s);
+    function render(){
+      const i=ScienceHubIntelligence.snapshot(), t=ScienceHubTracking.summary();
+      document.getElementById('sh68-action').textContent=i.nextAction[0];
+      document.getElementById('sh68-tasks').textContent=i.openTasks;
+      document.getElementById('sh68-revision').textContent=i.dueRevision;
+      document.getElementById('sh68-opps').textContent=t.opportunities;
+      document.getElementById('sh68-world').textContent=ScienceHubWorld.count();
+    }
+    document.getElementById('sh68-refresh').onclick=render;
+    document.getElementById('sh68-goal').onclick=()=>{const v=prompt('Goal name?');if(v){ScienceHubTracking.addGoal(v);render();}};
+    document.getElementById('sh68-exam').onclick=()=>{const v=prompt('Exam name?');if(v){ScienceHubTracking.addExam(v,'','Upcoming');render();}};
+    document.getElementById('sh68-opp').onclick=()=>{const v=prompt('PCB opportunity to save?');if(v){ScienceHubTracking.saveOpportunity(v,'PCB');render();}};
+    document.getElementById('sh68-worldadd').onclick=()=>{const v=prompt('World knowledge note?');if(v){ScienceHubWorld.saveNote(v,'');render();}};
+    render();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+})();

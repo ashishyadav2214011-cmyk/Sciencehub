@@ -45,3 +45,7 @@ Do NOT delete the repository. Keep any existing `home-hero.png` and `ScienceHub.
 - The launcher/PWA icon is intentionally static; the 3D lab remains a separate showcase page so it does not slow down normal app startup.
 
 - Updated the primary ScienceHub icon assets with the supplied ScienceHub emblem artwork.
+
+
+## Step 6–8 integration
+Integrated local-first Intelligence Center, tracking/opportunity storage, World Knowledge notes, schema versioning, and service-worker cache refresh. Existing localStorage data is retained. Fresh external information remains internet-dependent and must be verified before use.
