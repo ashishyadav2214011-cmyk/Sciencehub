@@ -55,3 +55,13 @@ Integrated local-first Intelligence Center, tracking/opportunity storage, World 
 - `home-hero.png` = supplied personal Home hero image.
 - `sciencehub-icon.png` / `sciencehub-icon-192.png` = supplied ScienceHub app icon only.
 - The icon is not used as the Home hero.
+
+
+## Step 6–9 Upgrade
+- Step 6: Intelligence Center / Next Best Action
+- Step 7: Time Tracking, Goals, Exam Tracker, PCB Opportunities
+- Step 8: World Knowledge + schema/data hardening
+- Step 9: Personal Intelligence & Recovery — priorities, quick check-ins, backup checkpoints, and lightweight recovery state
+- Existing Step 1–5 functionality is retained.
+- App icon remains `sciencehub-icon.png` / `sciencehub-icon-192.png`; `home-hero.png` remains the Home hero.
+- Service-worker cache bumped to `sciencehub-v70-step9` for refresh.

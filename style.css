@@ -27,3 +27,18 @@ main{max-width:760px;margin:auto;padding:16px}.hero{border:1px solid #28506a;bor
 .home-hero-content h1{margin:4px 0 8px;font-size:clamp(28px,7vw,42px)}
 .home-hero-content p{margin:0;font-size:16px}
 @media(max-width:600px){.home-hero{min-height:300px}.home-hero img{height:300px}}
+
+
+/* ===== Step 9 UI ===== */
+.sh-step9-card{
+  margin:16px 0;padding:18px;border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;background:linear-gradient(145deg,rgba(30,35,55,.86),rgba(12,16,28,.92));
+  box-shadow:0 10px 30px rgba(0,0,0,.18)
+}
+.sh-step9-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sh-step9-head h2{margin:0;font-size:1.08rem}
+.sh-badge{font-size:.72rem;font-weight:800;letter-spacing:.08em;padding:5px 8px;border-radius:999px;background:rgba(120,180,255,.16)}
+.sh-step9-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.sh-step9-grid button{padding:11px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.06);color:inherit}
+.sh-step9-stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:.8rem;opacity:.9}
+@media(max-width:600px){.sh-step9-grid{grid-template-columns:1fr}.sh-step9-card{padding:14px}}

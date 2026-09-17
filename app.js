@@ -201,3 +201,75 @@ render();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
+
+
+/* ===== ScienceHub Step 9: Personal Intelligence & Recovery ===== */
+const ScienceHubStep9 = {
+  schemaVersion: 9,
+  getState() {
+    const raw = localStorage.getItem("sciencehub-step9");
+    if (!raw) return { checkins: [], priorities: [], reviews: [], lastBackup: null };
+    try { return JSON.parse(raw); } catch { return { checkins: [], priorities: [], reviews: [], lastBackup: null }; }
+  },
+  saveState(s) { localStorage.setItem("sciencehub-step9", JSON.stringify(s)); },
+  addCheckin(text) {
+    const s = this.getState();
+    s.checkins.unshift({ id: Date.now(), text, at: new Date().toISOString() });
+    this.saveState(s);
+    return s;
+  },
+  addPriority(text) {
+    const s = this.getState();
+    s.priorities.unshift({ id: Date.now(), text, done: false });
+    this.saveState(s);
+    return s;
+  },
+  togglePriority(id) {
+    const s = this.getState();
+    const p = s.priorities.find(x => x.id === id);
+    if (p) p.done = !p.done;
+    this.saveState(s);
+    return s;
+  },
+  markBackup() {
+    const s = this.getState();
+    s.lastBackup = new Date().toISOString();
+    this.saveState(s);
+    return s.lastBackup;
+  },
+  snapshot() {
+    const s = this.getState();
+    return {
+      schemaVersion: 9,
+      prioritiesOpen: s.priorities.filter(x => !x.done).length,
+      checkins: s.checkins.length,
+      reviews: s.reviews.length,
+      lastBackup: s.lastBackup
+    };
+  }
+};
+window.ScienceHubStep9 = ScienceHubStep9;
+
+
+function scienceHubStep9Card() {
+  const s = window.ScienceHubStep9?.snapshot?.() || {};
+  return `
+    <section class="sh-step9-card">
+      <div class="sh-step9-head">
+        <span class="sh-badge">STEP 9</span>
+        <h2>Personal Intelligence & Recovery</h2>
+      </div>
+      <p class="muted">Protect your progress, capture priorities, and keep a lightweight personal decision history.</p>
+      <div class="sh-step9-grid">
+        <button onclick="ScienceHubStep9.addPriority(prompt('Priority to remember:') || ''); location.reload()">➕ Priority</button>
+        <button onclick="ScienceHubStep9.addCheckin(prompt('Quick study check-in:') || ''); location.reload()">🧠 Check-in</button>
+        <button onclick="ScienceHubStep9.markBackup(); alert('Backup checkpoint recorded.'); location.reload()">🛡️ Backup Checkpoint</button>
+      </div>
+      <div class="sh-step9-stats">
+        <span>Open priorities: <b>${s.prioritiesOpen ?? 0}</b></span>
+        <span>Check-ins: <b>${s.checkins ?? 0}</b></span>
+        <span>Last checkpoint: <b>${s.lastBackup ? new Date(s.lastBackup).toLocaleString() : 'Not recorded'}</b></span>
+      </div>
+    </section>`;
+}
+window.scienceHubStep9Card = scienceHubStep9Card;
