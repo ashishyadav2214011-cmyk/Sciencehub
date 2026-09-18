@@ -1,5 +1,9 @@
-const CACHE="sciencehub-v72-step9-integrated";
-const ASSETS=["./","./index.html","./style.css","./app-step9.js","./manifest.json","./icon.svg","./sciencehub-icon.png","./sciencehub-icon-192.png","./home-hero.png"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(e.request.method==="GET"){const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy))}return res}).catch(()=>caches.match("./index.html")))));
+const CACHE="sciencehub-v73-unified";
+const ASSETS=["./","./index.html","./style.css","./app-step9.js","./app.js","./manifest.json","./icon.svg","./sciencehub-icon.png","./sciencehub-icon-192.png","./home-hero.png"];
+self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
+self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("sciencehub-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener("message",event=>{if(event.data?.type==="SKIP_WAITING")self.skipWaiting()});
+self.addEventListener("fetch",event=>{
+ if(event.request.method!=="GET")return;
+ event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});return response}).catch(()=>caches.match("./index.html"))));
+});

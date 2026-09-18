@@ -1,71 +1,51 @@
-# ScienceHub — Step 4 + Step 5 Integrated
+# ScienceHub V73 — Unified Clean Build
 
-This package combines the Home/Personalization layer and the Revision Engine on top of the local-first ScienceHub foundation.
+ScienceHub is Ashu.Ayansh's personal-use Study OS built around:
+**Understand → Practice → Measure → Improve → Execute**.
 
-## Implemented in this package
-- Home V2 command center
-- Global local search
-- Today's Mission → Next Best Action
-- Revision attention on Home
-- KuroVen action prompt
-- Subjects → Chapters → Status
-- Study tasks linked to subjects/chapters
-- Revision due queue
-- Mistake → automatic revision trigger
-- Revision completion → follow-up review
-- Live Recall using browser speech recognition when supported
-- Practice scoring: Correct/OK +2, Bad −1
-- Local notes, flashcards, concept maps, resources
-- Progress snapshot
-- Export/import JSON backup
-- PWA/service worker
-- Mobile-first UI
+## What V73 fixes
+- One shared local data store (`sciencehub-v45`) for the core app and Step 6–9.
+- Step 6–8 are rendered inside the normal Home render cycle; no fragile DOM injection.
+- Step 9 is rendered inside Home and stored inside the same main database.
+- Safe migration from the earlier `sciencehub-v1` store and older standalone Step 9 state.
+- Service worker V73 deletes older `sciencehub-*` caches on activation.
+- Service worker registration uses `updateViaCache: none` and requests an update.
+- Home V2 retained: hero, global search, mission, next action, revision attention, snapshot, KuroVen, quick access.
+- Study tasks with subject/chapter/priority, focus sessions, active-study tracking, and completion scoring.
+- Revision queue with follow-up review, mistake-triggered revision, and browser Live Recall when supported.
+- Practice scoring: Good/OK `+2`, Bad `−1`.
+- Learning Lab: notes, flashcards, concept maps, resource hub, and native Share where supported.
+- School workspace: schedule, teachers, homework, practicals.
+- Exam Tracker with `Exam went smoothly` and `Exam went with trouble` states.
+- PCB Opportunities is kept as the final Home section, with source field; no fabricated live data.
+- World Knowledge / KnownWorld is a separate on-demand area reached from the Home `Aui` trigger; it is not treated as a normal social/feed section.
+- My Space with archive/recovery workflow; Recovery Box is the final section.
+- Backup/import with explicit confirmation before replacing local data.
+- Quiet Mode preference and Camera Mode preference are stored locally; phone-level notification/call control is not claimed.
+- Mobile-first responsive UI and PWA assets.
 
-## Important
-This is still a client-side/local-first build. It is NOT a finished production cloud Study OS.
-Not yet included: authentication, cloud database, multi-device sync, real AI provider integration, verified live opportunities/exam ingestion, advanced spaced-repetition algorithms, production security/observability.
+## Deliberate limitations
+This remains a client-side/local-first build. It does **not** pretend to provide:
+- real cloud authentication,
+- multi-device cloud sync,
+- a production AI provider,
+- automatically verified live scholarship/exam feeds,
+- fabricated PYQs or current opportunities.
 
-## GitHub upload
-Replace the root files:
-- index.html
-- app.js
-- style.css
-- sw.js
-- manifest.json
-- icon.svg
-- README.md
+Fresh external information must be verified before being treated as current.
 
-Do NOT delete the repository. Keep any existing `home-hero.png` and `ScienceHub.zip` unless intentionally replacing them later.
+## GitHub Pages upload
+Replace the root files with the contents of this package. Upload the extracted files, not the ZIP itself.
+Required runtime files:
+- `index.html`
+- `app-step9.js`
+- `app.js` (compatibility copy)
+- `style.css`
+- `sw.js`
+- `manifest.json`
+- `sciencehub-icon.png`
+- `sciencehub-icon-192.png`
+- `icon.svg`
+- `home-hero.png`
 
-## ScienceHub Identity / Icon update
-- Added `sciencehub-icon.png` (512×512) as the primary PWA/app icon.
-- Added `sciencehub-icon-192.png` for installability compatibility.
-- Added `icon-lab.html`, an optional interactive 3D ScienceHub icon showcase.
-- The 3D lab uses pointer capture for more reliable mobile drag behavior and keeps the JavaScript comments valid (`//` instead of HTML `<!-- -->` inside `<script>`).
-- The launcher/PWA icon is intentionally static; the 3D lab remains a separate showcase page so it does not slow down normal app startup.
-
-- Updated the primary ScienceHub icon assets with the supplied ScienceHub emblem artwork.
-
-
-## Step 6–8 integration
-Integrated local-first Intelligence Center, tracking/opportunity storage, World Knowledge notes, schema versioning, and service-worker cache refresh. Existing localStorage data is retained. Fresh external information remains internet-dependent and must be verified before use.
-
-
-### Home Hero + App Icon fix
-- `home-hero.png` = supplied personal Home hero image.
-- `sciencehub-icon.png` / `sciencehub-icon-192.png` = supplied ScienceHub app icon only.
-- The icon is not used as the Home hero.
-
-
-## Step 6–9 Upgrade
-- Step 6: Intelligence Center / Next Best Action
-- Step 7: Time Tracking, Goals, Exam Tracker, PCB Opportunities
-- Step 8: World Knowledge + schema/data hardening
-- Step 9: Personal Intelligence & Recovery — priorities, quick check-ins, backup checkpoints, and lightweight recovery state
-- Existing Step 1–5 functionality is retained.
-- App icon remains `sciencehub-icon.png` / `sciencehub-icon-192.png`; `home-hero.png` remains the Home hero.
-- Service-worker cache bumped to `sciencehub-v70-step9` for refresh.
-
-
-## Step 6–9 Clean Final
-Step 9 UI is explicitly mounted; runtime loads cache-busted `app-step9.js`; service-worker cache is `sciencehub-v71-step9-final`; accidental duplicate filenames removed.
+After committing, wait for GitHub Pages to rebuild, then open the live URL in a normal browser tab before testing any old installed shortcut.

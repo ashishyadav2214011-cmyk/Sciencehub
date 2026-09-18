@@ -3,26 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#08111f">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#07101c">
+<meta name="description" content="ScienceHub — Ashu.Ayansh personal Study OS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./sciencehub-icon-192.png" type="image/png">
+<link rel="stylesheet" href="./style.css">
 <title>ScienceHub — Ashu.Ayansh</title>
 </head>
 <body>
 <header class="topbar">
-  <button class="brand" onclick="go('home')"><img src="sciencehub-icon.png" alt="ScienceHub icon"><b>ScienceHub</b></button>
+  <button class="brand" onclick="go('home')" aria-label="ScienceHub Home"><img src="sciencehub-icon.png" alt="ScienceHub icon"><b>ScienceHub</b></button>
   <div class="user">Ashu.Ayansh</div>
   <button class="iconbtn" onclick="openSettings()" aria-label="Settings">⚙️</button>
 </header>
 <main id="app"></main>
-<nav id="bottomNav">
+<nav id="bottomNav" aria-label="Primary navigation">
   <button onclick="go('home')">🏠<small>Home</small></button>
   <button onclick="go('study')">📅<small>Study</small></button>
   <button onclick="go('subjects')">📚<small>Subjects</small></button>
   <button onclick="go('practice')">📝<small>Practice</small></button>
   <button onclick="more()">☰<small>More</small></button>
 </nav>
-<div id="drawer"></div><div id="modal"></div>
-<script src="app-step9.js"></script>
+<div id="drawer" aria-hidden="true"></div>
+<div id="modal" role="dialog" aria-modal="true"></div>
+<script src="./app-step9.js" defer></script>
 </body>
 </html>
