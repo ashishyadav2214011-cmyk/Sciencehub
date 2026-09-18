@@ -65,3 +65,7 @@ Integrated local-first Intelligence Center, tracking/opportunity storage, World 
 - Existing Step 1–5 functionality is retained.
 - App icon remains `sciencehub-icon.png` / `sciencehub-icon-192.png`; `home-hero.png` remains the Home hero.
 - Service-worker cache bumped to `sciencehub-v70-step9` for refresh.
+
+
+## Step 6–9 Clean Final
+Step 9 UI is explicitly mounted; runtime loads cache-busted `app-step9.js`; service-worker cache is `sciencehub-v71-step9-final`; accidental duplicate filenames removed.
