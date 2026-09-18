@@ -1,4 +1,4 @@
-const CACHE="sciencehub-v82-nail-in-coffin";
+const CACHE="sciencehub-v83-nail-in-coffin";
 const ASSETS=[
  "./","./index.html","./css/style.css","./js/app.js","./manifest.json",
  "./assets/brand/sciencehub-icon.svg","./assets/brand/sciencehub-icon-192.png","./assets/brand/sciencehub-icon-512.png",

@@ -1,4 +1,4 @@
-# ScienceHub V82 — Nail in the Coffin
+# ScienceHub V83 — Nail in the Coffin
 
 This package is the clean visual/runtime consolidation of the ScienceHub build.
 
@@ -9,12 +9,12 @@ This package is the clean visual/runtime consolidation of the ScienceHub build.
 - **Brand icon is rebuilt for clarity:** a simple vector atom + `SH` mark is used for the header, favicon and PWA icons.
 - **Home hierarchy is explicit:** Hero → Search → Today’s Mission → Next Best Action → Snapshot → Quick Access → AI → Sukoon → Intelligence → Horizon → PCB.
 - **Duplicate/legacy visual patches are removed from CSS.**
-- **Service-worker cache is versioned to V82** so the old Home should not remain cached after reload/update.
+- **Service-worker cache is versioned to V83** so the old Home should not remain cached after reload/update.
 - **UPMSP 2026–27 syllabus + PYQ registry remain included.**
 
 ## Folder layout
 ```
-ScienceHub-Nail-in-Coffin-V82/
+ScienceHub-Nail-in-Coffin-V83/
 ├─ index.html
 ├─ manifest.json
 ├─ sw.js
@@ -36,7 +36,7 @@ ScienceHub-Nail-in-Coffin-V82/
 Upload the **contents of this folder** to the root of the `Sciencehub` repository. Keep the folders exactly as shown. Then open the repository's GitHub Pages URL.
 
 ## Important cache note
-If an older deployment still appears, hard-refresh once and wait for the new service worker to activate. V82 uses a new cache name and a new script query string.
+If an older deployment still appears, hard-refresh once and wait for the new service worker to activate. V83 uses a new cache name and a new script query string.
 
 ## Runtime note
 This remains a local-first static/PWA build. No secret API key is embedded. Generative AI needs a separately configured backend/provider.
