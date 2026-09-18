@@ -3,7 +3,7 @@
  */
 const KEY = "sciencehub-v45";
 const OLD_KEY = "sciencehub-v1";
-const APP_VERSION = "V76";
+const APP_VERSION = "V78-FINAL";
 const subjects = ["Biology","Physics","Chemistry","English","Hindi"];
 const statuses = ["Not Started","Learning","Learned","Revision Due","Strong","Weak","Mastered"];
 const priorities = ["high","normal","low"];
@@ -13,7 +13,7 @@ let searchTerm = "";
 let focusTimer = { end: 0, started: 0, durationMs: 0, taskId: null, interval: null };
 
 function fresh(){return {
-  schemaVersion:13, appVersion:APP_VERSION,
+  schemaVersion:15, appVersion:APP_VERSION,
   tasks:[], notes:[], revision:[], events:[], minutes:0, good:0, bad:0,
   chapters:[], topics:[], questions:[], mistakes:[], flashcards:[], maps:[], resources:[],
   goals:[], examTracker:[], opportunities:[], worldKnowledge:[],
@@ -21,7 +21,7 @@ function fresh(){return {
   space:{bookmarks:[],ideas:[],projects:[],bioinformatics:[]},
   recovery:[],
   step9:{checkins:[],priorities:[],reviews:[],lastBackup:null},
-  settings:{quiet:true,cameraMode:"off",sukoonPosition:{x:null,y:null}}
+  settings:{quiet:true,cameraMode:"off",sukoonPosition:{x:null,y:null},sukoonContext:true,aiProvider:"local",aiEndpoint:"",aiModel:""}
 }}
 
 function seedChapters(){return [
@@ -47,11 +47,12 @@ function normalise(raw){
   out.space=Object.assign(base.space,x.space||{});
   for(const k of ["bookmarks","ideas","projects","bioinformatics"]){if(!Array.isArray(out.space[k]))out.space[k]=[]}
   out.step9=Object.assign(base.step9,x.step9||{});
+  out.step9.backupCount=Number(out.step9.backupCount||0);
   for(const k of ["checkins","priorities","reviews"]){if(!Array.isArray(out.step9[k]))out.step9[k]=[]}
   out.settings=Object.assign(base.settings,x.settings||{});
   out.settings.sukoonPosition=Object.assign(base.settings.sukoonPosition,x.settings?.sukoonPosition||{});
   if(!out.chapters.length)out.chapters=seedChapters();
-  out.schemaVersion=Math.max(Number(out.schemaVersion||0),13);
+  out.schemaVersion=Math.max(Number(out.schemaVersion||0),15);
   out.appVersion=APP_VERSION;
   return out;
 }
@@ -80,12 +81,26 @@ function label(x){return ({academic:"Academic",learning:"Learning Lab",revision:
 function dueRevisions(){return db.revision.filter(r=>r.status!=="done" && (!r.due||r.due<=Date.now())).sort((a,b)=>(a.due||0)-(b.due||0))}
 function openTasks(){return db.tasks.filter(t=>!t.done)}
 function pct(){const total=db.tasks.length;return total?Math.round(db.tasks.filter(t=>t.done).length/total*100):0}
+function intelligenceSnapshot(){
+ const open=openTasks();
+ const due=dueRevisions();
+ const weak=db.chapters.filter(c=>c.status==='Weak');
+ const mistakeCounts={};
+ db.mistakes.forEach(m=>{const k=`${m.subject||''}|${m.chapter||''}`;mistakeCounts[k]=(mistakeCounts[k]||0)+1});
+ const repeated=Object.entries(mistakeCounts).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,n])=>({key:k,count:n}));
+ const planned=open.reduce((a,t)=>a+Number(t.minutes||0),0);
+ return {openCount:open.length,dueCount:due.length,weakCount:weak.length,plannedMinutes:planned,activeMinutes:Number(db.minutes||0),practiceNet:Number(db.good||0)-Number(db.bad||0),repeatedMistakes:repeated};
+}
 function nextAction(){
-  const r=dueRevisions()[0]; if(r)return {title:`Revise ${r.title||r.topic}`,why:"Revision is due",action:`completeRevision('${r.id}')`};
-  const t=openTasks().sort((a,b)=>({high:0,normal:1,low:2}[a.priority]??1)-({high:0,normal:1,low:2}[b.priority]??1))[0];
-  if(t)return {title:t.title,why:`${t.priority||"normal"} priority study task`,action:`startTask('${t.id}')`};
-  const w=db.chapters.find(c=>c.status==="Weak"); if(w)return {title:`Recover ${w.name}`,why:"Weak area needs deliberate practice",action:`quickRevision('${w.id}')`};
-  return {title:"Create today's first task",why:"Your active queue is clear",action:"go('study')"};
+ const now=Date.now();
+ const candidates=[];
+ dueRevisions().slice(0,10).forEach(r=>candidates.push({score:100-(r.due&&r.due<now-86400000?0:10),title:`Revise ${r.title||r.topic}`,why:'Revision is due',action:`completeRevision('${r.id}')`}));
+ db.chapters.filter(c=>c.status==='Weak').slice(0,8).forEach(c=>candidates.push({score:80,title:`Repair ${c.name}`,why:`${c.subject} is marked Weak`,action:`quickRevision('${c.id}')`}));
+ openTasks().forEach(t=>{const p={high:70,normal:50,low:30}[t.priority]??50;candidates.push({score:p+(Number(t.minutes||0)<=45?8:0),title:t.title,why:`${t.priority||'normal'} priority study task`,action:`startTask('${t.id}')`})});
+ const repeated=intelligenceSnapshot().repeatedMistakes[0];
+ if(repeated&&repeated.count>=2){const [subject,chapter]=repeated.key.split('|');candidates.push({score:90,title:`Repair repeated mistakes${chapter?` in ${chapter}`:''}`,why:`${repeated.count} mistakes are recorded in the same area`,action:chapter?`addRevision('${subject}','${chapter}','Repeated mistake pattern')`:`go('mistakes')`})}
+ candidates.sort((a,b)=>b.score-a.score);
+ return candidates[0]||{title:"Create today's first study task",why:"Your active queue is clear",action:"go('study')"};
 }
 
 function home(){
@@ -96,6 +111,7 @@ function home(){
   ${sukoonCompanionMarkup()}
   <div class="search"><input value="${esc(searchTerm)}" placeholder="🌐 Search ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
   ${searchTerm?searchResults():''}
+  ${intelligencePanel()}
   <div class="grid section">
    <div class="card wide"><small>🎯 TODAY'S MISSION</small><h2>${esc(openTasks()[0]?.title||"Create your first study task")}</h2><p>${openTasks()[0]?`${esc(openTasks()[0].priority||"normal")} • ${openTasks()[0].minutes||0} min`:'One clear task. One focused session.'}</p><button class="btn" onclick="${openTasks()[0]?`startTask('${openTasks()[0].id}')`:`go('study')`}">${openTasks()[0]?"START":"PLAN"}</button></div>
    <div class="card"><small>⚡ NEXT BEST ACTION</small><h3>${esc(action.title)}</h3><p class="muted">${esc(action.why)}</p><button class="btn secondary" onclick="${action.action}">Do it</button></div>
@@ -152,12 +168,14 @@ function sukoonLocalReply(mode,text){
  const t=text.toLowerCase();
  const chat=sukoonStore();
  const recent=chat.filter(x=>x.role==='user').slice(-3).map(x=>x.text);
+ const ctx=sukoonContext();
  let reply='';
  if(/^(hi|hello|hey|hii|namaste|salaam|salam)\b/.test(t)) reply=`Hey 👋 I’m here. You can talk normally—study, confusion, plans, or just what is on your mind. ${sukoonQuote()}`;
  else if(/study|padh|chapter|physics|chemistry|biology|bio|english|hindi|exam|test|revision|homework|school/.test(t)){
+   const snap=intelligenceSnapshot();
    if(/can't|cant|unable|not able|mann nahi|man nahi|bore|boring|lazy|procrast|avoid|distract/.test(t)) reply=`Let's make the problem smaller instead of forcing a huge session. Pick one concrete target, set a short focus block, and begin with the easiest visible step. If you tell me the subject and chapter, I can turn it into a simple next action.`;
    else if(/confus|understand|samajh|hard|difficult|tough/.test(t)) reply=`Let's separate the confusion into pieces: **what you know → what is unclear → one example → one practice question**. Tell me the exact concept or question and I'll work through it with you.`;
-   else reply=`Got it. We can work on this step by step. First identify the exact target, then do one active task—recall, solve, explain, or test. If you give me the topic, I'll help choose the next move.`;
+   else reply=`Got it. We can work on this step by step. First identify the exact target, then do one active task—recall, solve, explain, or test. ${snap.dueCount?`You currently have ${snap.dueCount} revision item(s) due. `:''}If you give me the topic, I'll help choose the next move.`;
  } else if(/sad|upset|stress|stressed|tension|worried|overthink|alone|pressure|fear|afraid/.test(t)){
    reply=`I hear that this feels heavy. You don't have to explain everything at once. Start with the part you can put into words, and I'll stay focused on what you actually share. We can then decide whether you want to **reflect** or take one small action.`;
  } else if(/goal|future|career|bioinformatics|dream|plan/.test(t)){
@@ -169,6 +187,7 @@ function sukoonLocalReply(mode,text){
    const starters={Listen:'Thanks for sharing that. I’m listening first. What part feels most important to you right now?',Reflect:'Let’s slow it down: what happened, what did you expect, and what is bothering you about the difference?',Analyze:'From what you expressed, we can examine the situation without assuming hidden thoughts. What keeps repeating or getting in the way?',Act:'Let’s convert this into one action you can actually do. What is the smallest useful step available right now?'};
    reply=starters[mode]||starters.Listen;
  }
+ if(ctx && mode==='Analyze') reply += ` ${ctx}`;
  if(recent.length>1 && mode==='Analyze' && !reply.includes('repeating')) reply += ` You’ve also mentioned ${recent.length} recent points here, so we can compare them rather than judging one moment in isolation.`;
  return reply;
 }
@@ -203,15 +222,6 @@ function initSukoonDrag(){
  el.addEventListener('pointerdown',start,{passive:false});window.addEventListener('pointermove',move,{passive:false});window.addEventListener('pointerup',end);el.addEventListener('touchstart',start,{passive:false});window.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end);
 }
 function search(v){searchTerm=v;render()}
-function searchResults(){
- const q=searchTerm.toLowerCase().trim(); if(!q)return "";
- const hits=[];
- db.tasks.forEach(x=>{if(`${x.title} ${x.subject||''} ${x.chapter||''}`.toLowerCase().includes(q))hits.push(`Task: ${x.title}`)});
- db.notes.forEach(x=>{if(`${x.title} ${x.body}`.toLowerCase().includes(q))hits.push(`Note: ${x.title}`)});
- db.questions.forEach(x=>{if(`${x.text} ${x.subject||''}`.toLowerCase().includes(q))hits.push(`Question: ${x.text}`)});
- db.chapters.forEach(x=>{if(`${x.subject} ${x.name}`.toLowerCase().includes(q))hits.push(`Chapter: ${x.subject} • ${x.name}`)});
- return `<div class="card section"><b>Search results</b><div class="list section">${hits.slice(0,12).map(esc).map(x=>`<div class="item">${x}</div>`).join("")||'<div class="muted">No local matches.</div>'}</div></div>`;
-}
 
 function study(){return `<section class="page"><div class="row"><div><div class="eyebrow">STUDY</div><h1>Plan → Focus → Finish</h1></div><button class="btn" onclick="openTaskForm()">+ Task</button></div><div id="taskForm"></div>${focusPanel()}<div class="list section">${db.tasks.length?db.tasks.map(taskCard).join(""):`<div class="card">No tasks yet. Add one small executable task.</div>`}</div></section>`}
 function taskCard(t){return `<div class="item ${t.done?'done':''}"><div class="row"><b>${esc(t.title)}</b><span class="tag">${esc(t.priority||'normal')}</span></div><div class="muted">${esc(t.subject||'General')} ${t.chapter?'• '+esc(t.chapter):''} • ${t.minutes||0} min</div><div class="actions">${!t.done?`<button class="btn good" onclick="startTask('${t.id}')">Focus</button><button class="btn secondary" onclick="doneTask('${t.id}')">Complete +2</button>`:`<span class="goodtxt">✓ Completed</span>`}<button class="btn secondary" onclick="archiveTask('${t.id}')">Archive</button></div></div>`}
@@ -237,7 +247,7 @@ function setStatus(cid,v){const c=db.chapters.find(x=>x.id===cid);if(!c)return;c
 function addTopic(cid){const c=db.chapters.find(x=>x.id===cid),t=prompt('Topic name?');if(!c||!t)return;db.topics.push({id:id(),chapterId:cid,subject:c.subject,chapter:c.name,name:t});save('topic-created')}
 
 function addRevision(subject,topic,reason){const exists=db.revision.find(r=>r.subject===subject&&r.title===topic&&r.status!=='done');if(exists)return exists.id;const rid=id();db.revision.push({id:rid,subject,title:topic,reason,status:'due',due:Date.now()});ev('REVISION_CREATED',{subject,topic,reason},false);return rid}
-function completeRevision(rid){const r=db.revision.find(x=>x.id===rid);if(!r)return;r.status='done';r.completedAt=new Date().toISOString();r.nextDue=Date.now()+3*86400000;db.revision.push({id:id(),subject:r.subject,title:r.title,reason:'Follow-up review',status:'due',due:r.nextDue});db.good+=2;ev('REVISION_COMPLETED',{id:rid},false);save('revision-completed')}
+function completeRevision(rid){const r=db.revision.find(x=>x.id===rid);if(!r)return;const days=Math.max(2,Math.min(14,Number(r.intervalDays||3)+1));r.status='done';r.completedAt=new Date().toISOString();r.intervalDays=days;const nextDue=Date.now()+days*86400000;db.revision.push({id:id(),subject:r.subject,title:r.title,reason:`Adaptive follow-up • ${days} day interval`,status:'due',due:nextDue,intervalDays:days});db.good+=2;ev('REVISION_COMPLETED',{id:rid,nextDue,intervalDays:days},false);save('revision-completed')}
 function quickRevision(cid){const c=db.chapters.find(x=>x.id===cid);if(c)addRevision(c.subject,c.name,'Manual revision');save('revision-added')}
 function revision(){const due=dueRevisions();return `<section class="page"><div class="eyebrow">REVISION ENGINE</div><h1>Recall → Repair → Revisit</h1><div class="grid3"><div class="card stat"><strong>${due.length}</strong><span>Due now</span></div><div class="card stat"><strong>${db.revision.length}</strong><span>Total review records</span></div><div class="card stat"><strong>${db.good}</strong><span>Positive actions</span></div></div><div class="list section">${due.map(r=>`<div class="item"><div class="row"><b>${esc(r.title)}</b><span class="tag">${esc(r.subject)}</span></div><div class="muted">${esc(r.reason||'Revision')} • due now</div><div class="actions"><button class="btn good" onclick="completeRevision('${r.id}')">Complete +2</button><button class="btn secondary" onclick="liveRecall('${r.id}')">🎙️ Live Recall</button></div></div>`).join('')||'<div class="card goodtxt">Nothing is due right now.</div>'}</div></section>`}
 function liveRecall(rid){if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('Speech recognition is not supported in this browser.');return}const R=window.SpeechRecognition||window.webkitSpeechRecognition,rec=new R();rec.lang='en-IN';rec.interimResults=false;rec.maxAlternatives=1;alert('Speak your recall now.');rec.onresult=e=>{const text=e.results[0][0].transcript;db.step9.checkins.unshift({id:id(),text:`Recall for ${rid}: ${text}`,at:new Date().toISOString()});save('live-recall')};rec.onerror=()=>alert('Microphone recall could not start. Check browser microphone permission.');rec.start()}
@@ -253,9 +263,9 @@ function maps(){return simpleList('Concept Maps','maps','🧩','Concept','Connec
 function resources(){return simpleList('Resource Hub','resources','🔗','Title','Link / note')}
 function addSimple(k){const a=prompt(k==='flashcards'?'Front':k==='maps'?'Concept':'Resource title');if(!a)return;const b=prompt(k==='flashcards'?'Back':k==='maps'?'Connections':'Link / note')||'';db[k].push({id:id(),a,b});save('learning-item-created')}
 
-function practice(){return `<section class="page"><div class="eyebrow">PRACTICE LAB</div><h1>Practice → Measure → Improve</h1><div class="grid3"><div class="card stat"><strong>${db.questions.length}</strong><span>Saved questions</span></div><div class="card stat"><strong>${db.good}</strong><span>Good / OK (+2)</span></div><div class="card stat"><strong>${db.bad}</strong><span>Bad (−1)</span></div></div><div class="actions section"><button class="btn" onclick="addQuestion()">+ Question</button><button class="btn secondary" onclick="go('mistakes')">Mistake Book</button></div><div class="list section">${db.questions.map(q=>`<div class="item"><div class="muted">${esc(q.subject)} ${q.chapter?'• '+esc(q.chapter):''}</div><b>${esc(q.text)}</b><div class="actions"><button class="btn good" onclick="answer('${q.id}',true)">Correct +2</button><button class="btn warn" onclick="answer('${q.id}',false)">Bad −1</button></div></div>`).join('')||'<div class="card">Add a question to start your local practice bank.</div>'}</div></section>`}
+function practice(){return `<section class="page"><div class="eyebrow">PRACTICE LAB</div><h1>Practice → Measure → Improve</h1><div class="grid3"><div class="card stat"><strong>${db.questions.length}</strong><span>Saved questions</span></div><div class="card stat"><strong>${db.good}</strong><span>Good / OK (+2)</span></div><div class="card stat"><strong>${db.bad}</strong><span>Bad (−1)</span></div></div><div class="actions section"><button class="btn" onclick="addQuestion()">+ Question</button><button class="btn secondary" onclick="go('mistakes')">Mistake Book</button></div><div class="list section">${db.questions.map(q=>`<div class="item"><div class="muted">${esc(q.subject)} ${q.chapter?'• '+esc(q.chapter):''}</div><b>${esc(q.text)}</b><div class="actions"><button class="btn good" onclick="answer('${q.id}','good')">Correct +3</button><button class="btn secondary" onclick="answer('${q.id}','ok')">OK +2</button><button class="btn warn" onclick="answer('${q.id}','bad')">Bad −1</button></div></div>`).join('')||'<div class="card">Add a question to start your local practice bank.</div>'}</div></section>`}
 function addQuestion(){const text=prompt('Question?');if(!text)return;const s=prompt('Subject? (Biology/Physics/Chemistry/English/Hindi)','Biology')||'General';const c=prompt('Chapter?')||'';db.questions.push({id:id(),text,subject:s,chapter:c,createdAt:new Date().toISOString()});save('question-created')}
-function answer(qid,ok){const q=db.questions.find(x=>x.id===qid);if(!q)return;if(ok){db.good+=2;ev('QUESTION_CORRECT',{id:qid},false)}else{db.bad+=1;db.mistakes.unshift({id:id(),question:q.text,subject:q.subject,chapter:q.chapter,at:Date.now()});if(q.chapter)addRevision(q.subject,q.chapter,'Wrong answer → revision trigger');ev('QUESTION_WRONG',{id:qid},false)}save(ok?'question-correct':'question-wrong')}
+function answer(qid,result){const q=db.questions.find(x=>x.id===qid);if(!q)return;if(result==='good'){db.good+=3;ev('QUESTION_GOOD',{id:qid,points:3},false)}else if(result==='ok'){db.good+=2;ev('QUESTION_OK',{id:qid,points:2},false)}else{db.bad+=1;db.mistakes.unshift({id:id(),question:q.text,subject:q.subject,chapter:q.chapter,at:Date.now()});if(q.chapter)addRevision(q.subject,q.chapter,'Wrong answer → revision trigger');ev('QUESTION_BAD',{id:qid,points:-1},false)}save(`question-${result}`)}
 function mistakes(){return `<section class="page"><div class="eyebrow">MISTAKE BOOK</div><h1>Turn mistakes into revision</h1><div class="list section">${db.mistakes.map(m=>`<div class="item"><b>${esc(m.question)}</b><div class="muted">${esc(m.subject)} • ${esc(m.chapter||'')}</div><div class="actions"><button class="btn secondary" onclick="mistakeRev('${m.id}')">Revise</button></div></div>`).join('')||'<div class="card goodtxt">No recorded mistakes yet.</div>'}</div></section>`}
 function mistakeRev(mid){const m=db.mistakes.find(x=>x.id===mid);if(m){addRevision(m.subject,m.chapter||m.question,'Mistake Book');save('mistake-revision')}}
 
@@ -290,6 +300,25 @@ function recovery(){return `<section class="page"><div class="eyebrow">RECOVERY 
 function restoreRecovery(rid){const r=db.recovery.find(x=>x.id===rid);if(!r)return;if(r.kind==='task')db.tasks.push(r.item);if(r.kind==='note')db.notes.push(r.item);db.recovery=db.recovery.filter(x=>x.id!==rid);save('recovery-restore')}
 function deleteRecovery(rid){if(!confirm('Permanently delete this archived item?'))return;db.recovery=db.recovery.filter(x=>x.id!==rid);save('recovery-delete')}
 
+function globalSearchIndex(){
+ const rows=[];
+ const add=(type,label,text,action)=>rows.push({type,label,text:String(text||''),action});
+ db.tasks.forEach(x=>add('Task',x.title,`${x.title} ${x.subject||''} ${x.chapter||''}`,`go('study')`));
+ db.notes.forEach(x=>add('Note',x.title,`${x.title} ${x.body}`,`go('notes')`));
+ db.questions.forEach(x=>add('Question',x.text,`${x.text} ${x.subject||''} ${x.chapter||''}`,`go('practice')`));
+ db.chapters.forEach(x=>add('Chapter',x.name,`${x.subject} ${x.name} ${x.status}`,`subject('${x.subject}')`));
+ db.topics.forEach(x=>add('Topic',x.name,`${x.subject} ${x.chapter} ${x.name}`,`subject('${x.subject}')`));
+ db.flashcards.forEach(x=>add('Flashcard',x.a,`${x.a} ${x.b}`,`go('flash')`));
+ db.resources.forEach(x=>add('Resource',x.a,`${x.a} ${x.b}`,`go('resources')`));
+ db.goals.forEach(x=>add('Goal',x.title,x.title,`go('progress')`));
+ db.opportunities.forEach(x=>add('Opportunity',x.title,`${x.title} ${x.type} ${x.source}`,`go('opportunities')`));
+ db.examTracker.forEach(x=>add('Exam',x.name,`${x.name} ${x.date} ${x.status}`,`go('exam')`));
+ return rows;
+}
+function intelligencePanel(){const x=intelligenceSnapshot();const r=x.repeatedMistakes[0];return `<section class="card section intelligence-panel"><div class="row"><div><div class="eyebrow">INTELLIGENCE LAYER</div><h2>What needs attention?</h2></div><span class="tag">Live local analysis</span></div><div class="intel-grid"><div><b>${x.dueCount}</b><small>Revision due</small></div><div><b>${x.weakCount}</b><small>Weak areas</small></div><div><b>${x.openCount}</b><small>Open tasks</small></div><div><b>${x.activeMinutes}m</b><small>Active study</small></div></div><p class="muted">${r?`Repeated pattern: ${r.count} mistakes in ${esc(r.key.replace('|',' • '))}.`:'No repeated mistake pattern detected yet.'}</p></section>`}
+function searchResults(){const q=searchTerm.toLowerCase().trim();if(!q)return '';const hits=globalSearchIndex().filter(x=>x.text.toLowerCase().includes(q)).slice(0,20);return `<div class="card section"><div class="row"><b>Global results</b><span class="muted">${hits.length}</span></div><div class="list section">${hits.map(x=>`<button class="item search-hit" onclick="${x.action}"><span class="tag">${esc(x.type)}</span><b>${esc(x.label)}</b></button>`).join('')||'<div class="muted">No local matches.</div>'}</div></div>`}
+function sukoonContext(){if(db.settings.sukoonContext===false)return '';const x=intelligenceSnapshot();const weak=db.chapters.filter(c=>c.status==='Weak').slice(0,3).map(c=>c.subject+' • '+c.name);return `ScienceHub context: ${x.openCount} open tasks, ${x.dueCount} revision items due, ${x.weakCount} weak areas, ${x.activeMinutes} active study minutes. ${weak.length?'Weak areas: '+weak.join(', ')+'. ':''}Practice net: ${x.practiceNet}.`; }
+
 function openDrawer(){
  const d=$("drawer");
  const groups=[
@@ -316,11 +345,11 @@ function closeDrawer(){const d=$("drawer");d.className='';d.setAttribute('aria-h
 window.addEventListener('keydown',e=>{if(e.key==='Escape' && $("drawer").classList.contains('show'))closeDrawer()});
 function openBackup(){
  $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>💾 Backup & Recovery</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Export before major changes. Import replaces current local data after confirmation.</p><div class="actions"><button class="btn" onclick="exportData(false)">Export JSON</button><button class="btn secondary" onclick="importData()">Import JSON</button></div><p class="muted">Backup file is local to your device unless you share it yourself.</p></div>`;$("modal").style.display='block'}
-function exportData(silent){const b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`ScienceHub-${APP_VERSION}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);if(!silent)alert('Backup exported.')}
+function exportData(silent){db.step9.lastBackup=new Date().toISOString();db.step9.backupCount=(db.step9.backupCount||0)+1;localStorage.setItem(KEY,JSON.stringify(db));const b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`ScienceHub-${APP_VERSION}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);if(!silent)alert('Backup exported.')}
 function importData(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const incoming=normalise(JSON.parse(r.result));if(!confirm('Replace current local ScienceHub data with this backup?'))return;db=incoming;save('backup-import');alert('Backup imported.') }catch(e){alert('Invalid backup file.')}};r.readAsText(f)};i.click()}
 function openSettings(){
  const q=db.settings.quiet!==false;
- $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>⚙️ Settings</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Local-first • PWA • user-controlled data</p><label class="setting"><input type="checkbox" ${q?'checked':''} onchange="setSetting('quiet',this.checked)"> Quiet Mode preference</label><label class="setting"><span>Camera Mode</span><select onchange="setSetting('cameraMode',this.value)"><option ${db.settings.cameraMode==='off'?'selected':''}>off</option><option ${db.settings.cameraMode==='preview'?'selected':''}>preview</option><option ${db.settings.cameraMode==='capture'?'selected':''}>capture</option></select></label><div class="notice section">ScienceHub can store the preference, but a web page cannot silently control phone-level calls or notifications.</div><div class="actions"><button class="btn" onclick="exportData(false)">Export Backup</button><button class="btn secondary" onclick="closeModal()">Close</button></div></div>`;$("modal").style.display='block'}
+ $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>⚙️ Settings</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Local-first • PWA • user-controlled data</p><label class="setting"><input type="checkbox" ${q?'checked':''} onchange="setSetting('quiet',this.checked)"> Quiet Mode preference</label><label class="setting"><input type="checkbox" ${db.settings.sukoonContext!==false?'checked':''} onchange="setSetting('sukoonContext',this.checked)"> Allow Sukoon.Brain to use permitted ScienceHub context</label><label class="setting"><span>Camera Mode</span><select onchange="setSetting('cameraMode',this.value)"><option ${db.settings.cameraMode==='off'?'selected':''}>off</option><option ${db.settings.cameraMode==='preview'?'selected':''}>preview</option><option ${db.settings.cameraMode==='capture'?'selected':''}>capture</option></select></label><div class="notice section">ScienceHub can store the preference, but a web page cannot silently control phone-level calls or notifications.</div><div class="notice section"><b>AI bridge:</b> this GitHub build stays local-first. An optional server endpoint can be configured in a future hosted backend; no secret API key is embedded in this app.</div><div class="actions"><button class="btn" onclick="exportData(false)">Export Backup</button><button class="btn secondary" onclick="closeModal()">Close</button></div></div>`;$("modal").style.display='block'}
 function setSetting(k,v){db.settings[k]=v;localStorage.setItem(KEY,JSON.stringify(db))}
 function closeModal(){$("modal").style.display='none'}
 function aiRole(role){const messages={KuroVen:"Action taker: choose one small useful action and start it now.",Hikaitage:"Learning strategist with a 30+ years teaching-style approach: connect where, what, how, why and when before you act.",HukoVaige:"Psychology lens with a 45+ years psychologist-style approach: notice patterns, curiosity, growth and the reality of what is helping or blocking you."};alert(`${role}\n\n${messages[role]||"Choose a role."}`)}

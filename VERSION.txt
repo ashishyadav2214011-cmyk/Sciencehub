@@ -1,0 +1,5 @@
+ScienceHub V78-FINAL
+Final local-first Study OS package
+Core loop: Understand -> Practice -> Measure -> Improve -> Execute
+Sukoon.Brain: Companion + Understanding Layer
+GitHub Pages: root-level deployment package

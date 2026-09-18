@@ -1,12 +1,12 @@
 {
-  "name": "ScienceHub — Ashu.Ayansh",
+  "name": "ScienceHub \u2014 Ashu.Ayansh",
   "short_name": "ScienceHub",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#07101c",
   "theme_color": "#07101c",
-  "description": "Personal Study OS with Sukoon.Brain companion, study atmosphere, motivation, and local chat — Understand → Practice → Measure → Improve → Execute",
+  "description": "Personal Study OS with unified intelligence and Sukoon.Brain companion \u2014 Understand \u2192 Practice \u2192 Measure \u2192 Improve \u2192 Execute",
   "icons": [
     {
       "src": "sciencehub-icon-192.png",
