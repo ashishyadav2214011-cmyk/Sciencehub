@@ -22,3 +22,10 @@ Sukoon.Brain is ScienceHub’s personal companion and reflective understanding l
 On Home, Sukoon.Brain appears as a movable floating atom/AI figure. Drag it anywhere on screen; its position is saved locally. Tap it to open the companion panel with Listen, Reflect, Analyze, and Act modes.
 
 Asset: `sukoon-brain-figure.png` — a ScienceHub/Sukoon.Brain representative figure combining the atom, science, learning, AI, friendly-eye/smile visual language.
+
+
+## V76 Home + Sukoon update
+- Full-home study atmosphere preserved with the existing hero/background visual.
+- Home now shows a randomized motivational thought card; the last shown quote is avoided on the next render.
+- Sukoon.Brain actions now save a local companion conversation record and return mode-specific responses instead of only echoing an alert.
+- Sukoon remains movable and its position is saved locally.

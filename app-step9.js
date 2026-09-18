@@ -88,11 +88,16 @@ function nextAction(){
   return {title:"Create today's first task",why:"Your active queue is clear",action:"go('study')"};
 }
 
+
+const SH_QUOTES=['"Small progress still counts when it moves you forward."', '"Understand it. Practice it. Measure it. Improve it."', '"Your future is built from the study session you do today."', '"One difficult question can become one strong concept."', '"Consistency beats waiting for the perfect mood."', '"Learn deeply, then make it useful."', '"A mistake is data when you use it to improve."', '"You do not need to finish everything today; finish the next right thing."', '"Curiosity turns confusion into questions, and questions into learning."', '"Focus on the next action, not the whole mountain."', '"Strong students are not mistake-free; they learn from mistakes."', '"Your notes become knowledge when you revisit and use them."', '"Build the habit first. Speed follows."', '"Every recall attempt strengthens the path back to the concept."', '"Study for understanding, not just for completion."', '"When a topic feels hard, break it into smaller questions."', '"Progress becomes visible when you keep records of your effort."', '"Today’s weak area can become tomorrow’s strength."', '"Do the work you can control; let results follow."', '"Science is learned by asking why, how, and what happens next."'];
+function shRandomQuote(){let last=Number(localStorage.getItem("sciencehub-quote-last")||-1),pool=SH_QUOTES.map((_,i)=>i).filter(i=>i!==last);let i=pool[Math.floor(Math.random()*pool.length)]??0;localStorage.setItem("sciencehub-quote-last",String(i));return SH_QUOTES[i]}
+
 function home(){
  const action=nextAction(), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length;
  return `<section class="page">
   <div class="home-hero"><img src="home-hero.png" alt="ScienceHub personal study room"><div class="home-hero-content"><div class="muted">Personal Study OS • ${APP_VERSION}</div><h1>Good study session, Ashu.Ayansh.</h1><p>Study • Learn • Grow</p></div></div>
   ${sukoonCompanionMarkup()}
+  <div class="sh-quote-card"><div class="sh-quote-label">✦ RANDOM STUDY THOUGHT</div><div class="sh-quote">${esc(shRandomQuote())}</div></div>
   <div class="search"><input value="${esc(searchTerm)}" placeholder="🌐 Search ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
   ${searchTerm?searchResults():''}
   <div class="grid section">
@@ -127,7 +132,11 @@ function openSukoon(){
 }
 function sukoonAction(mode){
  const prompts={Listen:'What would you like to share right now?',Reflect:'What situation would you like to think through?',Analyze:'What pattern or problem have you noticed?',Act:'What would you like help taking action on?'};
- const v=prompt(prompts[mode]); if(!v)return; alert(`Sukoon.Brain • ${mode}\n\nI heard: ${v}\n\nYour companion can help you explore this from what you choose to share.`);
+ const v=prompt(prompts[mode]); if(!v)return;
+ const responses={Listen:'I’m listening. Start wherever it feels easiest. You do not need to organize everything first.',Reflect:'Let’s separate what happened, what you think about it, and what is actually in your control.',Analyze:'I’ll look only at patterns visible in what you shared, not hidden thoughts or diagnoses.',Act:'Let’s turn this into one small, clear action you can do next.'};
+ const key='sciencehub-sukoon-chat'; let chat=[]; try{chat=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+ chat.push({mode,user:v,reply:responses[mode],time:Date.now()}); localStorage.setItem(key,JSON.stringify(chat.slice(-50)));
+ const m=$('modal'); m.innerHTML=`<div class="modalbox sukoon-modal"><div class="row"><div><div class="eyebrow">SUKOON.BRAIN • ${mode.toUpperCase()}</div><h2>🤍 I’m here with you</h2></div><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="sukoon-chat"><div class="sukoon-user"><b>You</b><p>${esc(v)}</p></div><div class="sukoon-ai"><b>Sukoon.Brain</b><p>${responses[mode]}</p></div></div><div class="sukoon-modes"><button onclick="sukoonAction('Listen')">👂<b>Listen</b></button><button onclick="sukoonAction('Reflect')">💭<b>Reflect</b></button><button onclick="sukoonAction('Analyze')">🔎<b>Analyze</b></button><button onclick="sukoonAction('Act')">🧭<b>Act</b></button></div><div class="notice section">This companion uses only what you choose to share and saves the recent conversation locally.</div></div>`; m.style.display='block';
 }
 function initSukoonDrag(){
  const el=$("sukoonCompanion"); if(!el)return;

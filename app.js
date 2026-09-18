@@ -3,7 +3,7 @@
  */
 const KEY = "sciencehub-v45";
 const OLD_KEY = "sciencehub-v1";
-const APP_VERSION = "V73";
+const APP_VERSION = "V75";
 const subjects = ["Biology","Physics","Chemistry","English","Hindi"];
 const statuses = ["Not Started","Learning","Learned","Revision Due","Strong","Weak","Mastered"];
 const priorities = ["high","normal","low"];
@@ -21,7 +21,7 @@ function fresh(){return {
   space:{bookmarks:[],ideas:[],projects:[],bioinformatics:[]},
   recovery:[],
   step9:{checkins:[],priorities:[],reviews:[],lastBackup:null},
-  settings:{quiet:true,cameraMode:"off"}
+  settings:{quiet:true,cameraMode:"off",sukoonPosition:{x:null,y:null}}
 }}
 
 function seedChapters(){return [
@@ -49,6 +49,7 @@ function normalise(raw){
   out.step9=Object.assign(base.step9,x.step9||{});
   for(const k of ["checkins","priorities","reviews"]){if(!Array.isArray(out.step9[k]))out.step9[k]=[]}
   out.settings=Object.assign(base.settings,x.settings||{});
+  out.settings.sukoonPosition=Object.assign(base.settings.sukoonPosition,x.settings?.sukoonPosition||{});
   if(!out.chapters.length)out.chapters=seedChapters();
   out.schemaVersion=Math.max(Number(out.schemaVersion||0),13);
   out.appVersion=APP_VERSION;
@@ -87,10 +88,16 @@ function nextAction(){
   return {title:"Create today's first task",why:"Your active queue is clear",action:"go('study')"};
 }
 
+
+const SH_QUOTES=['"Small progress still counts when it moves you forward."', '"Understand it. Practice it. Measure it. Improve it."', '"Your future is built from the study session you do today."', '"One difficult question can become one strong concept."', '"Consistency beats waiting for the perfect mood."', '"Learn deeply, then make it useful."', '"A mistake is data when you use it to improve."', '"You do not need to finish everything today; finish the next right thing."', '"Curiosity turns confusion into questions, and questions into learning."', '"Focus on the next action, not the whole mountain."', '"Strong students are not mistake-free; they learn from mistakes."', '"Your notes become knowledge when you revisit and use them."', '"Build the habit first. Speed follows."', '"Every recall attempt strengthens the path back to the concept."', '"Study for understanding, not just for completion."', '"When a topic feels hard, break it into smaller questions."', '"Progress becomes visible when you keep records of your effort."', '"Today’s weak area can become tomorrow’s strength."', '"Do the work you can control; let results follow."', '"Science is learned by asking why, how, and what happens next."'];
+function shRandomQuote(){let last=Number(localStorage.getItem("sciencehub-quote-last")||-1),pool=SH_QUOTES.map((_,i)=>i).filter(i=>i!==last);let i=pool[Math.floor(Math.random()*pool.length)]??0;localStorage.setItem("sciencehub-quote-last",String(i));return SH_QUOTES[i]}
+
 function home(){
  const action=nextAction(), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length;
  return `<section class="page">
   <div class="home-hero"><img src="home-hero.png" alt="ScienceHub personal study room"><div class="home-hero-content"><div class="muted">Personal Study OS • ${APP_VERSION}</div><h1>Good study session, Ashu.Ayansh.</h1><p>Study • Learn • Grow</p></div></div>
+  ${sukoonCompanionMarkup()}
+  <div class="sh-quote-card"><div class="sh-quote-label">✦ RANDOM STUDY THOUGHT</div><div class="sh-quote">${esc(shRandomQuote())}</div></div>
   <div class="search"><input value="${esc(searchTerm)}" placeholder="🌐 Search ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
   ${searchTerm?searchResults():''}
   <div class="grid section">
@@ -108,6 +115,37 @@ function home(){
  </section>`;
 }
 
+function sukoonCompanionMarkup(){
+ const pos=db.settings?.sukoonPosition||{};
+ const style=(Number.isFinite(pos.x)&&Number.isFinite(pos.y))?`left:${pos.x}px;top:${pos.y}px;right:auto;bottom:auto;`:'right:14px;bottom:84px;';
+ return `<div id="sukoonCompanion" class="sukoon-float" style="${style}" role="button" tabindex="0" aria-label="Sukoon.Brain companion" onclick="openSukoon()" onkeydown="if(event.key==='Enter'||event.key===' ')openSukoon()">
+   <div class="sukoon-orbit"><img src="sukoon-brain-figure.png" alt="Sukoon.Brain ScienceHub companion"></div><span class="sukoon-pulse"></span><span class="sukoon-drag" aria-hidden="true">⠿</span>
+ </div>`;
+}
+function openSukoon(){
+ const m=$("modal");
+ m.innerHTML=`<div class="modalbox sukoon-modal"><div class="row"><div><div class="eyebrow">SCIENCEHUB COMPANION</div><h2>🤍 Sukoon.Brain</h2></div><button class="iconbtn" onclick="closeModal()" aria-label="Close Sukoon.Brain">✕</button></div>
+ <div class="sukoon-profile"><img src="sukoon-brain-figure.png" alt="Sukoon.Brain"><div><b>Personal Companion</b><p class="muted">Listens first, understands what you express, reflects clearly, and helps when you want it.</p></div></div>
+ <div class="sukoon-modes"><button onclick="sukoonAction('Listen')">👂<b>Listen</b><small>Share what's on your mind</small></button><button onclick="sukoonAction('Reflect')">💭<b>Reflect</b><small>Think it through together</small></button><button onclick="sukoonAction('Analyze')">🔎<b>Analyze</b><small>Notice expressed patterns</small></button><button onclick="sukoonAction('Act')">🧭<b>Act</b><small>Choose a useful next step</small></button></div>
+ <div class="notice section">Sukoon.Brain works from what you share and what ScienceHub is permitted to provide. It does not read minds or diagnose you.</div></div>`;
+ m.style.display='block';
+}
+function sukoonAction(mode){
+ const prompts={Listen:'What would you like to share right now?',Reflect:'What situation would you like to think through?',Analyze:'What pattern or problem have you noticed?',Act:'What would you like help taking action on?'};
+ const v=prompt(prompts[mode]); if(!v)return;
+ const responses={Listen:'I’m listening. Start wherever it feels easiest. You do not need to organize everything first.',Reflect:'Let’s separate what happened, what you think about it, and what is actually in your control.',Analyze:'I’ll look only at patterns visible in what you shared, not hidden thoughts or diagnoses.',Act:'Let’s turn this into one small, clear action you can do next.'};
+ const key='sciencehub-sukoon-chat'; let chat=[]; try{chat=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+ chat.push({mode,user:v,reply:responses[mode],time:Date.now()}); localStorage.setItem(key,JSON.stringify(chat.slice(-50)));
+ const m=$('modal'); m.innerHTML=`<div class="modalbox sukoon-modal"><div class="row"><div><div class="eyebrow">SUKOON.BRAIN • ${mode.toUpperCase()}</div><h2>🤍 I’m here with you</h2></div><button class="iconbtn" onclick="closeModal()">✕</button></div><div class="sukoon-chat"><div class="sukoon-user"><b>You</b><p>${esc(v)}</p></div><div class="sukoon-ai"><b>Sukoon.Brain</b><p>${responses[mode]}</p></div></div><div class="sukoon-modes"><button onclick="sukoonAction('Listen')">👂<b>Listen</b></button><button onclick="sukoonAction('Reflect')">💭<b>Reflect</b></button><button onclick="sukoonAction('Analyze')">🔎<b>Analyze</b></button><button onclick="sukoonAction('Act')">🧭<b>Act</b></button></div><div class="notice section">This companion uses only what you choose to share and saves the recent conversation locally.</div></div>`; m.style.display='block';
+}
+function initSukoonDrag(){
+ const el=$("sukoonCompanion"); if(!el)return;
+ let drag=false, sx=0, sy=0, ox=0, oy=0;
+ const start=e=>{if(e.target.closest('button'))return;drag=true;const p=e.touches?e.touches[0]:e;const r=el.getBoundingClientRect();sx=p.clientX;sy=p.clientY;ox=r.left;oy=r.top;el.classList.add('dragging');e.preventDefault()};
+ const move=e=>{if(!drag)return;const p=e.touches?e.touches[0]:e;let x=Math.max(4,Math.min(window.innerWidth-el.offsetWidth-4,ox+p.clientX-sx));let y=Math.max(4,Math.min(window.innerHeight-el.offsetHeight-4,oy+p.clientY-sy));el.style.left=x+'px';el.style.top=y+'px';el.style.right='auto';el.style.bottom='auto';e.preventDefault()};
+ const end=()=>{if(!drag)return;drag=false;el.classList.remove('dragging');const r=el.getBoundingClientRect();db.settings.sukoonPosition={x:Math.round(r.left),y:Math.round(r.top)};localStorage.setItem(KEY,JSON.stringify(db));};
+ el.addEventListener('pointerdown',start,{passive:false});window.addEventListener('pointermove',move,{passive:false});window.addEventListener('pointerup',end);el.addEventListener('touchstart',start,{passive:false});window.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end);
+}
 function search(v){searchTerm=v;render()}
 function searchResults(){
  const q=searchTerm.toLowerCase().trim(); if(!q)return "";
@@ -220,7 +258,6 @@ function openDrawer(){
 function more(){openDrawer()}
 function closeDrawer(){const d=$("drawer");d.className='';d.setAttribute('aria-hidden','true');d.innerHTML='';document.body.classList.remove('drawer-open')}
 window.addEventListener('keydown',e=>{if(e.key==='Escape' && $("drawer").classList.contains('show'))closeDrawer()});
-function closeDrawer(){$("drawer").className=''}
 function openBackup(){
  $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>💾 Backup & Recovery</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Export before major changes. Import replaces current local data after confirmation.</p><div class="actions"><button class="btn" onclick="exportData(false)">Export JSON</button><button class="btn secondary" onclick="importData()">Import JSON</button></div><p class="muted">Backup file is local to your device unless you share it yourself.</p></div>`;$("modal").style.display='block'}
 function exportData(silent){const b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`ScienceHub-${APP_VERSION}-backup.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);if(!silent)alert('Backup exported.')}
@@ -237,6 +274,7 @@ function render(){
  const map={home,study,subjects:subjectsPage,practice,learning,notes,flash,maps,resources,revision,mistakes,progress,academic,school,opportunities,time,space,world,exam:examTracker,recovery};
  const fn=current.startsWith('subject:')?()=>subjectPage(current.slice(8)):(map[current]||home);
  $("app").innerHTML=fn();
+ setTimeout(initSukoonDrag,0);
 }
 
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}

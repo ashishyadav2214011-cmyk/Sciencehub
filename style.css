@@ -32,3 +32,8 @@ main{max-width:900px;margin:auto;padding:14px}.page>h1{margin-top:8px}.eyebrow{c
 .sukoon-modes button>b{font-size:13px;}
 .sukoon-modes button>small{color:var(--muted);margin-top:3px;font-size:10px;}
 @media(max-width:600px){.sukoon-float{width:70px;height:70px}.sukoon-orbit{width:64px;height:64px}.sukoon-modes{grid-template-columns:1fr}}
+
+.sh-quote-card{margin:12px 0;padding:16px 18px;border:1px solid rgba(130,210,255,.25);border-radius:20px;background:linear-gradient(135deg,rgba(12,30,52,.92),rgba(9,18,32,.82));box-shadow:0 10px 35px rgba(0,0,0,.18)}
+.sh-quote-label{font-size:10px;letter-spacing:.16em;opacity:.7;margin-bottom:7px}.sh-quote{font-size:17px;line-height:1.45;font-weight:650}.sukoon-float{box-shadow:0 12px 35px rgba(0,0,0,.28)}
+
+.sukoon-chat{display:grid;gap:10px;margin:14px 0}.sukoon-user,.sukoon-ai{padding:12px 14px;border-radius:15px;border:1px solid var(--line);background:rgba(255,255,255,.035)}.sukoon-user{margin-left:16px}.sukoon-ai{margin-right:16px}.sukoon-chat p{margin:5px 0 0;line-height:1.5}.sh-quote-card{margin:12px 0;padding:16px 18px;border:1px solid rgba(130,210,255,.25);border-radius:20px;background:linear-gradient(135deg,rgba(12,30,52,.92),rgba(9,18,32,.82));box-shadow:0 10px 35px rgba(0,0,0,.18)}.sh-quote-label{font-size:10px;letter-spacing:.16em;opacity:.7;margin-bottom:7px}.sh-quote{font-size:17px;line-height:1.45;font-weight:650}
