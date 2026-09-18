@@ -104,25 +104,31 @@ function nextAction(){
 }
 
 function home(){
- const action=nextAction(), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length;
- return `<section class="page home-page">
-  <div class="home-hero"><img src="home-hero.png" alt="ScienceHub personal study room"><div class="home-hero-content"><div class="muted">Personal Study OS • ${APP_VERSION}</div><h1>Good study session, Ashu.Ayansh.</h1><p>Study • Learn • Grow</p></div></div>
+ const action=nextAction(), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length, task=openTasks()[0];
+ return `<section class="page home-page home-v3">
+  <div class="home-ambient" aria-hidden="true"></div>
+  <div class="home-v3-head">
+   <div><div class="eyebrow">SCIENCEHUB • PERSONAL KNOWLEDGE UNIVERSE</div><h1>Good evening, Ashu.Ayansh.</h1><p>Calm enough to think. Clear enough to act.</p></div>
+   <div class="home-core" aria-hidden="true"><img src="sciencehub-icon.png" alt=""><span></span></div>
+  </div>
+  <div class="search home-search"><input value="${esc(searchTerm)}" placeholder="🌐 Search your ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
+  ${searchTerm?searchResults():''}
+  <div class="mission-core">
+   <div class="mission-kicker"><span>🎯 TODAY'S MISSION</span><span class="mission-status">${task?'READY':'OPEN'}</span></div>
+   <h2>${esc(task?.title||"Create your first study mission")}</h2>
+   <p>${task?`${esc(task.priority||"normal")} • ${task.minutes||0} min`:'One clear target. One focused session. No noise.'}</p>
+   <button class="btn mission-btn" onclick="${task?`startTask('${task.id}')`:`go('study')`}">${task?'START MISSION':'CREATE MISSION'} <span>→</span></button>
+  </div>
+  <div class="next-action-card"><div><div class="eyebrow">⚡ NEXT BEST ACTION</div><h3>${esc(action.title)}</h3><p>${esc(action.why)}</p></div><button class="btn secondary" onclick="${action.action}">DO IT</button></div>
+  <div class="home-strip"><div><small>REVISION</small><b>${due} due</b></div><div><small>ACTIVE STUDY</small><b>${db.minutes} min</b></div><div><small>TASKS DONE</small><b>${done}</b></div><div><small>COMPLETION</small><b>${pct()}%</b></div></div>
+  <div class="home-section-heading"><div><div class="eyebrow">EXPLORE YOUR UNIVERSE</div><h2>Quick Access</h2></div><span>Only what you need often</span></div>
+  <div class="quick-grid home-quick">${["study","academic","subjects","learning","practice","revision","progress","space"].map(x=>`<button class="quick" onclick="go('${x}')"><span class="quick-icon">${icon(x)}</span><b>${label(x)}</b></button>`).join("")}</div>
+  <div class="card section ai-center home-ai"><div class="eyebrow">AI COMMAND CENTER</div><h2>Choose your intelligence</h2><div class="ai-grid"><button onclick="aiRole('KuroVen')"><b>🖤 KuroVen</b><span>Action → execution</span></button><button onclick="aiRole('Hikaitage')"><b>🧭 Hikaitage</b><span>Learning + strategy</span></button><button onclick="aiRole('HukoVaige')"><b>🧠 HukoVaige</b><span>Patterns + reflection</span></button><button onclick="go('world')"><b>🌍 WORLD / Aui</b><span>Open when you call Aui</span></button></div></div>
   <div class="home-quote"><span>✦</span><div><small>YOUR NEXT THOUGHT</small><b>${esc(sukoonQuote())}</b></div></div>
   ${sukoonCompanionMarkup()}
-  <div class="search"><input value="${esc(searchTerm)}" placeholder="🌐 Search ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
-  ${searchTerm?searchResults():''}
-  ${intelligencePanel()}
-  <div class="grid section">
-   <div class="card wide"><small>🎯 TODAY'S MISSION</small><h2>${esc(openTasks()[0]?.title||"Create your first study task")}</h2><p>${openTasks()[0]?`${esc(openTasks()[0].priority||"normal")} • ${openTasks()[0].minutes||0} min`:'One clear task. One focused session.'}</p><button class="btn" onclick="${openTasks()[0]?`startTask('${openTasks()[0].id}')`:`go('study')`}">${openTasks()[0]?"START":"PLAN"}</button></div>
-   <div class="card"><small>⚡ NEXT BEST ACTION</small><h3>${esc(action.title)}</h3><p class="muted">${esc(action.why)}</p><button class="btn secondary" onclick="${action.action}">Do it</button></div>
-   <div class="card"><small>🔄 REVISION</small><h3>${due} due</h3><button class="btn secondary" onclick="go('revision')">Review</button></div>
-   <div class="card"><small>📊 SNAPSHOT</small><h3>${db.minutes} active min</h3><p class="muted">${done} tasks completed • ${pct()}% task completion</p></div>
-   <div class="card wide"><small>🖤 KUROVEN</small><p>${esc(action.title)} — stop planning and start the next useful action.</p><button class="btn secondary" onclick="kuro()">KuroVen: Start</button></div>
-  </div>
-  <div class="section"><h2>Quick Access</h2><div class="quick-grid">${["academic","learning","revision","progress","school","time","space","opportunities"].map(x=>`<button class="quick" onclick="go('${x}')">${icon(x)} ${label(x)}</button>`).join("")}</div></div>
-  <div class="card section ai-center"><div class="eyebrow">AI COMMAND CENTER</div><h2>Choose the kind of help you need</h2><div class="ai-grid"><button onclick="aiRole('KuroVen')"><b>🖤 KuroVen</b><span>Action → execution</span></button><button onclick="aiRole('Hikaitage')"><b>🧭 Hikaitage</b><span>Learning + strategy</span></button><button onclick="aiRole('HukoVaige')"><b>🧠 HukoVaige</b><span>Psychology + patterns</span></button><button onclick="go('world')"><b>🌍 WORLD / Aui</b><span>Open only when you call Aui</span></button></div></div>
   ${step68Markup()}
   ${step9Markup()}
+  <section class="card section home-future"><div class="eyebrow">YOUR HORIZON</div><h2>Future Possibilities</h2><p class="muted">Bioinformatics • research • scholarships • careers • competitions</p><button class="btn secondary" onclick="go('opportunities')">Explore</button></section>
   <section class="card section pcb-final"><div class="eyebrow">FINAL SECTION</div><h2>🎯 PCB Opportunities</h2><p class="muted">Scholarships • Research • Courses • Internships • Careers • Competitions • Exam Tracker</p><div class="actions"><button class="btn" onclick="go('opportunities')">Open PCB Opportunities</button><button class="btn secondary" onclick="go('exam')">Exam Tracker</button></div></section>
  </section>`;
 }

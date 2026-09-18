@@ -1,5 +1,3 @@
-ScienceHub V78-FINAL
-Final local-first Study OS package
-Core loop: Understand -> Practice -> Measure -> Improve -> Execute
-Sukoon.Brain: Companion + Understanding Layer
-GitHub Pages: root-level deployment package
+ScienceHub V79-HOME-UNIVERSE
+Home V3 visual merger: Quiet Genius + Neural Lab + Midnight Observatory + Command Deck + Personal Universe
+GitHub Pages root-ready package

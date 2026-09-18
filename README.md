@@ -56,3 +56,7 @@ This GitHub Pages package is fully functional without a secret API key, but it i
 
 ### Deployment
 All website files are at the ZIP root. Upload the contents directly to the `main` branch root, then enable GitHub Pages from `main` / root.
+
+
+## V79 Home Universe refinement
+Home V3 merges five visual directions: Quiet Genius, Neural Lab, Midnight Observatory, Science Command Deck, and Personal Universe. The visual hierarchy is deliberately cleared: identity → mission → next action → compact snapshot → quick access → AI → reflection → future horizon → PCB opportunities. The existing local-first functionality remains the foundation.
