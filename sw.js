@@ -1,6 +1,6 @@
-const CACHE="sciencehub-v83-nail-in-coffin";
+const CACHE="sciencehub-v84-final-functional";
 const ASSETS=[
- "./","./index.html","./css/style.css","./js/app.js","./manifest.json",
+ "./","./index.html","./css/style.css","./js/app.js","./data/syllabus-fallback.js","./manifest.json",
  "./assets/brand/sciencehub-icon.svg","./assets/brand/sciencehub-icon-192.png","./assets/brand/sciencehub-icon-512.png",
  "./assets/hero/home-hero-personal.png","./assets/companion/sukoon-brain-figure.png",
  "./data/upmsp_syllabus_2026_27.json","./data/pyq_registry_2020_2026.json"

@@ -1,2 +1,1 @@
-ScienceHub V83
-V80 functionality preserved + V82 clean Home/assets + Sukoon.Brain Conversation Layer
+ScienceHub V84 — Final Functional Consolidation
