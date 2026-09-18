@@ -12,3 +12,23 @@ main{max-width:900px;margin:auto;padding:14px}.page>h1{margin-top:8px}.eyebrow{c
 @media(max-width:600px){.ai-grid{grid-template-columns:1fr 1fr}}
 
 @media(max-width:600px){.drawerbox{width:100vw;border-left:0;padding-left:12px;padding-right:12px}.control-grid{grid-template-columns:1fr}.control-item{min-height:58px}.control-summary span{font-size:10px}}
+
+
+/* Sukoon.Brain — movable Home companion */
+.sukoon-float{position:fixed;z-index:75;width:78px;height:78px;border-radius:50%;display:grid;place-items:center;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;filter:drop-shadow(0 10px 24px rgba(70,140,255,.38));}
+.sukoon-float.dragging{cursor:grabbing;filter:drop-shadow(0 14px 30px rgba(130,90,255,.48));}
+.sukoon-orbit{width:70px;height:70px;border-radius:50%;overflow:hidden;border:1px solid rgba(110,210,255,.72);background:radial-gradient(circle at 50% 50%,rgba(55,120,255,.22),rgba(5,12,25,.92));box-shadow:0 0 0 3px rgba(120,180,255,.08),0 0 28px rgba(70,160,255,.42),inset 0 0 18px rgba(110,170,255,.2);}
+.sukoon-orbit img{width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.12);}
+.sukoon-pulse{position:absolute;inset:2px;border-radius:50%;border:1px solid rgba(120,220,255,.4);animation:sukoonPulse 2.2s ease-out infinite;pointer-events:none;}
+.sukoon-drag{position:absolute;right:-2px;bottom:-1px;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#091729;border:1px solid rgba(120,210,255,.5);font-size:12px;color:#cbe8ff;box-shadow:0 3px 12px rgba(0,0,0,.4);}
+@keyframes sukoonPulse{0%{transform:scale(.94);opacity:.75}70%,100%{transform:scale(1.28);opacity:0}}
+.sukoon-modal{max-width:620px;}
+.sukoon-profile{display:flex;align-items:center;gap:14px;padding:12px;border:1px solid rgba(120,190,255,.2);border-radius:16px;background:rgba(9,23,40,.72);}
+.sukoon-profile img{width:72px;height:72px;border-radius:16px;object-fit:cover;border:1px solid rgba(120,210,255,.4);}
+.sukoon-profile p{margin:4px 0 0;}
+.sukoon-modes{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px;}
+.sukoon-modes button{display:flex;align-items:flex-start;gap:9px;text-align:left;border:1px solid var(--line);background:#0b1727;border-radius:14px;padding:12px;}
+.sukoon-modes button>b,.sukoon-modes button>small{display:block;}
+.sukoon-modes button>b{font-size:13px;}
+.sukoon-modes button>small{color:var(--muted);margin-top:3px;font-size:10px;}
+@media(max-width:600px){.sukoon-float{width:70px;height:70px}.sukoon-orbit{width:64px;height:64px}.sukoon-modes{grid-template-columns:1fr}}
