@@ -1,30 +1,15 @@
 {
-  "name": "ScienceHub \u2014 Ashu.Ayansh",
-  "short_name": "ScienceHub",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#07101c",
-  "theme_color": "#07101c",
-  "description": "Personal Study OS with unified intelligence and Sukoon.Brain companion \u2014 Understand \u2192 Practice \u2192 Measure \u2192 Improve \u2192 Execute",
-  "icons": [
-    {
-      "src": "sciencehub-icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "sciencehub-icon.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
+  "name":"ScienceHub — Ashu.Ayansh",
+  "short_name":"ScienceHub",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#07101c",
+  "theme_color":"#07101c",
+  "description":"Personal Study OS — Understand → Practice → Measure → Improve → Execute",
+  "icons":[
+    {"src":"assets/brand/sciencehub-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"assets/brand/sciencehub-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},
+    {"src":"assets/brand/sciencehub-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}
   ]
 }

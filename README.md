@@ -1,39 +1,42 @@
-# ScienceHub V80 — UPMSP 2026–27 + PYQ Integration
+# ScienceHub V82 — Nail in the Coffin
 
-**Personal Study OS for Ashu.Ayansh**
+This package is the clean visual/runtime consolidation of the ScienceHub build.
 
-Core loop: **Understand → Practice → Measure → Improve → Execute**
+## What was fixed
+- **The cluttered Home bug is removed:** `app-step9.js` is no longer loaded. The cleaner unified `app.js` runtime is the only app runtime.
+- **Hero artwork is real and visible:** Home now has a dedicated, prominent hero image at `assets/hero/home-hero-personal.png`; it is not only a dark CSS background.
+- **Assets are organized:** brand, hero, companion and data assets have dedicated folders.
+- **Brand icon is rebuilt for clarity:** a simple vector atom + `SH` mark is used for the header, favicon and PWA icons.
+- **Home hierarchy is explicit:** Hero → Search → Today’s Mission → Next Best Action → Snapshot → Quick Access → AI → Sukoon → Intelligence → Horizon → PCB.
+- **Duplicate/legacy visual patches are removed from CSS.**
+- **Service-worker cache is versioned to V82** so the old Home should not remain cached after reload/update.
+- **UPMSP 2026–27 syllabus + PYQ registry remain included.**
 
-## V80 additions
+## Folder layout
+```
+ScienceHub-Nail-in-Coffin-V82/
+├─ index.html
+├─ manifest.json
+├─ sw.js
+├─ css/style.css
+├─ js/app.js
+├─ assets/
+│  ├─ brand/
+│  │  ├─ sciencehub-icon.svg
+│  │  ├─ sciencehub-icon-192.png
+│  │  └─ sciencehub-icon-512.png
+│  ├─ hero/home-hero-personal.png
+│  └─ companion/sukoon-brain-figure.png
+└─ data/
+   ├─ upmsp_syllabus_2026_27.json
+   └─ pyq_registry_2020_2026.json
+```
 
-- UPMSP academic session **2026–27** syllabus index for Class 11 + Class 12.
-- Core subjects: Hindi, English, Physics, Chemistry, Biology.
-- Subject codes and official syllabus PDF links.
-- Unit/section headings, marks where stated, and topic-level labels.
-- Class 11 ↔ Class 12 bridge.
-- PYQ Hub 2020–2026 entry points.
-- PYQ non-fabrication rule: no invented question text.
-- Offline-cached syllabus JSON.
-- Existing Home Universe / Sukoon.Brain / Study OS functionality retained.
+## GitHub Pages
+Upload the **contents of this folder** to the root of the `Sciencehub` repository. Keep the folders exactly as shown. Then open the repository's GitHub Pages URL.
 
-## Important source rule
+## Important cache note
+If an older deployment still appears, hard-refresh once and wait for the new service worker to activate. V82 uses a new cache name and a new script query string.
 
-UPMSP's official syllabus page lists the Class 11 and Class 12 subject documents, including Hindi (101), English (117), Physics (151), Chemistry (152), and Biology (153). The official subject PDFs identify the academic session as **2026–27**.
-
-Official source: https://upmsp.edu.in/Board_Syllabus.aspx
-Official question bank: https://upmsp.edu.in/Board_QuestionBank.aspx
-Official model papers: https://upmsp.edu.in/Board_ModelPaper.aspx
-
-## Data files
-
-- `data/upmsp_syllabus_2026_27.json` — structured syllabus.
-- `data/pyq_registry_2020_2026.json` — PYQ source/year registry.
-- `UPMSP-2026-27-INTEGRATION.md` — integration and source notes.
-
-### PYQ integrity
-
-A year appearing in the registry is a **source slot**, not a claim that a particular paper has been verified or that every set for that year exists. ScienceHub should attach a question only after its source is checked. This avoids fabricating PYQs.
-
-
-## V81 Home Universe visual refinement
-Home uses a personalized night-study hero derived from the supplied reference images with a subtle secondary-room blend. The visual hierarchy is calmer: Mission → Next Best Action → Today → Quick Access → AI → Personal Intelligence → Future → PCB. Empty zero-value dashboard grids are removed from Home; deeper intelligence/recovery controls remain accessible from dedicated areas.
+## Runtime note
+This remains a local-first static/PWA build. No secret API key is embedded. Generative AI needs a separately configured backend/provider.
