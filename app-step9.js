@@ -100,8 +100,6 @@ function home(){
    <div class="card"><small>📊 SNAPSHOT</small><h3>${db.minutes} active min</h3><p class="muted">${done} tasks completed • ${pct()}% task completion</p></div>
    <div class="card wide"><small>🖤 KUROVEN</small><p>${esc(action.title)} — stop planning and start the next useful action.</p><button class="btn secondary" onclick="kuro()">KuroVen: Start</button></div>
   </div>
-  ${step68Markup()}
-  ${step9Markup()}
   <div class="section"><h2>Quick Access</h2><div class="quick-grid">${["academic","learning","revision","progress","school","time","space","opportunities"].map(x=>`<button class="quick" onclick="go('${x}')">${icon(x)} ${label(x)}</button>`).join("")}</div></div>
   <div class="card section ai-center"><div class="eyebrow">AI COMMAND CENTER</div><h2>Choose the kind of help you need</h2><div class="ai-grid"><button onclick="aiRole('KuroVen')"><b>🖤 KuroVen</b><span>Action → execution</span></button><button onclick="aiRole('Hikaitage')"><b>🧭 Hikaitage</b><span>Learning + strategy</span></button><button onclick="aiRole('HukoVaige')"><b>🧠 HukoVaige</b><span>Psychology + patterns</span></button><button onclick="go('world')"><b>🌍 WORLD / Aui</b><span>Open only when you call Aui</span></button></div></div>
   ${step68Markup()}
@@ -198,8 +196,30 @@ function recovery(){return `<section class="page"><div class="eyebrow">RECOVERY 
 function restoreRecovery(rid){const r=db.recovery.find(x=>x.id===rid);if(!r)return;if(r.kind==='task')db.tasks.push(r.item);if(r.kind==='note')db.notes.push(r.item);db.recovery=db.recovery.filter(x=>x.id!==rid);save('recovery-restore')}
 function deleteRecovery(rid){if(!confirm('Permanently delete this archived item?'))return;db.recovery=db.recovery.filter(x=>x.id!==rid);save('recovery-delete')}
 
-function openDrawer(){const items=['academic','learning','revision','progress','school','opportunities','time','space','world','focus'];$("drawer").innerHTML=`<div class="drawerbox"><div class="row"><h2>ScienceHub</h2><button class="iconbtn" onclick="closeDrawer()">✕</button></div>${items.map(x=>`<button onclick="${x==='focus'?'focusQuick()':`go('${x}')`}">${icon(x)} ${label(x)}</button>`).join('')}<button onclick="openSettings()">⚙️ Settings</button><button onclick="openBackup()">💾 Backup / Recovery</button></div>`;$("drawer").className='show'}
+function openDrawer(){
+ const d=$("drawer");
+ const groups=[
+  {title:"Study Core",items:[
+   ["home","🏠","Home"],["academic","🎓","Academic"],["study","📅","Study Planner"],
+   ["subjects","📚","Subjects"],["learning","🧠","Learning Lab"],["practice","📝","Practice Lab"],["revision","🔁","Revision Engine"],
+   ["progress","📈","Progress & Analytics"]]},
+  {title:"Life & Future",items:[
+   ["school","🏫","School"],["opportunities","🎯","PCB Opportunities"],["exam","🧭","Exam Tracker"],["time","⏱️","Time Tracking"],
+   ["space","🗂️","My Space"],["world","🌍","World Knowledge / Aui"]]},
+  {title:"Control & Safety",items:[
+   ["focus","⏳","Focus Mode"],["settings","⚙️","Settings"],["backup","💾","Backup & Recovery"]]}
+ ];
+ const content=groups.map(g=>`<div class="control-group"><div class="control-title">${g.title}</div><div class="control-grid">${g.items.map(([key,ic,txt])=>{
+   const action=key==='focus'?"focusQuick()":key==='settings'?"openSettings()":key==='backup'?"openBackup()":`go('${key}')`;
+   return `<button class="control-item" onclick="${action}"><span class="control-icon">${ic}</span><span><b>${txt}</b><small>${key==='world'?'Fresh information needs internet':key==='backup'?'Protect or restore local data':'Open workspace'}</small></span></button>`;
+ }).join('')}</div></div>`).join('');
+ d.innerHTML=`<div class="drawer-backdrop" onclick="closeDrawer()"></div><aside class="drawerbox control-center" role="dialog" aria-modal="true" aria-label="ScienceHub Control Center"><div class="control-head"><div><div class="eyebrow">SCIENCEHUB CONTROL</div><h2>Command Center</h2><p>Navigate, control, and protect your Study OS.</p></div><button class="iconbtn" onclick="closeDrawer()" aria-label="Close control center">✕</button></div><div class="control-summary"><span>Tasks ${openTasks().length}</span><span>Revision ${dueRevisions().length}</span><span>Study ${db.minutes}m</span></div>${content}</aside>`;
+ d.className='show'; d.setAttribute('aria-hidden','false'); document.body.classList.add('drawer-open');
+ setTimeout(()=>d.querySelector('.control-item')?.focus(),20);
+}
 function more(){openDrawer()}
+function closeDrawer(){const d=$("drawer");d.className='';d.setAttribute('aria-hidden','true');d.innerHTML='';document.body.classList.remove('drawer-open')}
+window.addEventListener('keydown',e=>{if(e.key==='Escape' && $("drawer").classList.contains('show'))closeDrawer()});
 function closeDrawer(){$("drawer").className=''}
 function openBackup(){
  $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>💾 Backup & Recovery</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Export before major changes. Import replaces current local data after confirmation.</p><div class="actions"><button class="btn" onclick="exportData(false)">Export JSON</button><button class="btn secondary" onclick="importData()">Import JSON</button></div><p class="muted">Backup file is local to your device unless you share it yourself.</p></div>`;$("modal").style.display='block'}
