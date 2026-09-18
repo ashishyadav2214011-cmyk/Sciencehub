@@ -25,3 +25,13 @@ Asset: `sukoon-brain-figure.png` — a ScienceHub/Sukoon.Brain representative fi
 
 
 V76 icon refinement: removed visual clutter from the app icon while preserving the ScienceHub emblem, science/learning identity, glow, and premium look.
+
+
+## V77 Sukoon + Home
+- Home uses the study-room visual as a full-page atmosphere with readable overlays.
+- Motivation quotes rotate randomly and are tracked locally so a quote is not repeated until the available set is exhausted.
+- Sukoon.Brain opens as a real in-app chat panel rather than browser prompts/alerts.
+- Listen, Reflect, Analyze, and Act modes change the companion's response approach.
+- Chat history and quote history are stored locally on the device.
+- The current chat engine is a deterministic local companion engine. It is fully usable offline, but it is not a generative cloud AI model.
+- No API key is embedded in the frontend.

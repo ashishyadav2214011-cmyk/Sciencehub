@@ -90,8 +90,9 @@ function nextAction(){
 
 function home(){
  const action=nextAction(), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length;
- return `<section class="page">
+ return `<section class="page home-page">
   <div class="home-hero"><img src="home-hero.png" alt="ScienceHub personal study room"><div class="home-hero-content"><div class="muted">Personal Study OS • ${APP_VERSION}</div><h1>Good study session, Ashu.Ayansh.</h1><p>Study • Learn • Grow</p></div></div>
+  <div class="home-quote"><span>✦</span><div><small>YOUR NEXT THOUGHT</small><b>${esc(sukoonQuote())}</b></div></div>
   ${sukoonCompanionMarkup()}
   <div class="search"><input value="${esc(searchTerm)}" placeholder="🌐 Search ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
   ${searchTerm?searchResults():''}
@@ -113,28 +114,92 @@ function home(){
 function sukoonCompanionMarkup(){
  const pos=db.settings?.sukoonPosition||{};
  const style=(Number.isFinite(pos.x)&&Number.isFinite(pos.y))?`left:${pos.x}px;top:${pos.y}px;right:auto;bottom:auto;`:'right:14px;bottom:84px;';
- return `<div id="sukoonCompanion" class="sukoon-float" style="${style}" role="button" tabindex="0" aria-label="Sukoon.Brain companion" onclick="openSukoon()" onkeydown="if(event.key==='Enter'||event.key===' ')openSukoon()">
+ return `<div id="sukoonCompanion" class="sukoon-float" style="${style}" role="button" tabindex="0" aria-label="Open Sukoon.Brain companion" onclick="sukoonTap(event)" onkeydown="if(event.key==='Enter'||event.key===' ')openSukoon()">
    <div class="sukoon-orbit"><img src="sukoon-brain-figure.png" alt="Sukoon.Brain ScienceHub companion"></div><span class="sukoon-pulse"></span><span class="sukoon-drag" aria-hidden="true">⠿</span>
  </div>`;
 }
+function sukoonStore(){
+ try{return JSON.parse(localStorage.getItem('sciencehub-sukoon-chat-v1')||'[]')}catch(e){return []}
+}
+function sukoonSaveChat(chat){localStorage.setItem('sciencehub-sukoon-chat-v1',JSON.stringify(chat.slice(-80)))}
+function sukoonTap(e){
+ if(window.__sukoonDragged){window.__sukoonDragged=false;return}
+ openSukoon();
+}
+function sukoonQuote(){
+ const quotes=[
+  'Progress becomes easier when the next step is clear.',
+  'You do not need a perfect session; you need a real one.',
+  'A difficult chapter is a signal to change the method, not to give up.',
+  'Small focused sessions compound into serious progress.',
+  'Understand first. Then practice until the idea becomes yours.',
+  'Your mistakes are useful when they become instructions for the next attempt.',
+  'Consistency is built from ordinary sessions done repeatedly.',
+  'When motivation is low, reduce the size of the next action.',
+  'A strong study system turns confusion into a sequence of actions.',
+  'Learning gets stronger when you explain, retrieve, test, and correct.',
+  'Do the next useful thing, then let the next thing become visible.',
+  'You can restart a session without restarting your whole plan.'
+ ];
+ let used=[]; try{used=JSON.parse(localStorage.getItem('sciencehub-sukoon-quotes-v1')||'[]')}catch(e){}
+ let available=quotes.filter(q=>!used.includes(q));
+ if(!available.length){used=[];available=quotes.slice()}
+ const q=available[Math.floor(Math.random()*available.length)];
+ used.push(q);localStorage.setItem('sciencehub-sukoon-quotes-v1',JSON.stringify(used));
+ return q;
+}
+function sukoonLocalReply(mode,text){
+ const t=text.toLowerCase();
+ const chat=sukoonStore();
+ const recent=chat.filter(x=>x.role==='user').slice(-3).map(x=>x.text);
+ let reply='';
+ if(/^(hi|hello|hey|hii|namaste|salaam|salam)\b/.test(t)) reply=`Hey 👋 I’m here. You can talk normally—study, confusion, plans, or just what is on your mind. ${sukoonQuote()}`;
+ else if(/study|padh|chapter|physics|chemistry|biology|bio|english|hindi|exam|test|revision|homework|school/.test(t)){
+   if(/can't|cant|unable|not able|mann nahi|man nahi|bore|boring|lazy|procrast|avoid|distract/.test(t)) reply=`Let's make the problem smaller instead of forcing a huge session. Pick one concrete target, set a short focus block, and begin with the easiest visible step. If you tell me the subject and chapter, I can turn it into a simple next action.`;
+   else if(/confus|understand|samajh|hard|difficult|tough/.test(t)) reply=`Let's separate the confusion into pieces: **what you know → what is unclear → one example → one practice question**. Tell me the exact concept or question and I'll work through it with you.`;
+   else reply=`Got it. We can work on this step by step. First identify the exact target, then do one active task—recall, solve, explain, or test. If you give me the topic, I'll help choose the next move.`;
+ } else if(/sad|upset|stress|stressed|tension|worried|overthink|alone|pressure|fear|afraid/.test(t)){
+   reply=`I hear that this feels heavy. You don't have to explain everything at once. Start with the part you can put into words, and I'll stay focused on what you actually share. We can then decide whether you want to **reflect** or take one small action.`;
+ } else if(/goal|future|career|bioinformatics|dream|plan/.test(t)){
+   reply=`Let's turn the bigger goal into a nearer step. A useful plan has **direction → current priority → next action → review**. Tell me what outcome you want and what is currently blocking it.`;
+ } else if(/what can you do|how can you help|help me/.test(t)){
+   reply=`I can listen, reflect on what you express, help you analyze a study or decision pattern, and turn it into a practical next step. I only use what you choose to share and permitted ScienceHub context.`;
+ } else if(/thank|thanks|thx/.test(t)) reply=`You're welcome 🤍. Keep the next step simple and concrete. ${sukoonQuote()}`;
+ else {
+   const starters={Listen:'Thanks for sharing that. I’m listening first. What part feels most important to you right now?',Reflect:'Let’s slow it down: what happened, what did you expect, and what is bothering you about the difference?',Analyze:'From what you expressed, we can examine the situation without assuming hidden thoughts. What keeps repeating or getting in the way?',Act:'Let’s convert this into one action you can actually do. What is the smallest useful step available right now?'};
+   reply=starters[mode]||starters.Listen;
+ }
+ if(recent.length>1 && mode==='Analyze' && !reply.includes('repeating')) reply += ` You’ve also mentioned ${recent.length} recent points here, so we can compare them rather than judging one moment in isolation.`;
+ return reply;
+}
 function openSukoon(){
- const m=$("modal");
- m.innerHTML=`<div class="modalbox sukoon-modal"><div class="row"><div><div class="eyebrow">SCIENCEHUB COMPANION</div><h2>🤍 Sukoon.Brain</h2></div><button class="iconbtn" onclick="closeModal()" aria-label="Close Sukoon.Brain">✕</button></div>
- <div class="sukoon-profile"><img src="sukoon-brain-figure.png" alt="Sukoon.Brain"><div><b>Personal Companion</b><p class="muted">Listens first, understands what you express, reflects clearly, and helps when you want it.</p></div></div>
- <div class="sukoon-modes"><button onclick="sukoonAction('Listen')">👂<b>Listen</b><small>Share what's on your mind</small></button><button onclick="sukoonAction('Reflect')">💭<b>Reflect</b><small>Think it through together</small></button><button onclick="sukoonAction('Analyze')">🔎<b>Analyze</b><small>Notice expressed patterns</small></button><button onclick="sukoonAction('Act')">🧭<b>Act</b><small>Choose a useful next step</small></button></div>
- <div class="notice section">Sukoon.Brain works from what you share and what ScienceHub is permitted to provide. It does not read minds or diagnose you.</div></div>`;
+ const m=$("modal"), chat=sukoonStore();
+ m.innerHTML=`<div class="modalbox sukoon-chat-modal"><div class="row"><div><div class="eyebrow">SCIENCEHUB COMPANION</div><h2>🤍 Sukoon.Brain</h2><p class="muted">Companion + understanding layer • local-first</p></div><button class="iconbtn" onclick="closeModal()" aria-label="Close Sukoon.Brain">✕</button></div>
+ <div class="sukoon-chat-head"><img src="sukoon-brain-figure.png" alt="Sukoon.Brain"><div><b>I'm listening.</b><small>Talk naturally. I respond from what you choose to share.</small></div></div>
+ <div id="sukoonMessages" class="sukoon-messages">${chat.length?chat.map(sukoonMessageHTML).join(''):`<div class="sukoon-msg bot"><b>Sukoon.Brain</b><div>Hey, Ashu 🤍. You can start anywhere. Tell me what you want to talk through.</div></div>`}</div>
+ <div class="sukoon-modebar">${['Listen','Reflect','Analyze','Act'].map(x=>`<button onclick="setSukoonMode('${x}')">${x}</button>`).join('')}</div>
+ <div class="sukoon-composer"><textarea id="sukoonInput" rows="2" placeholder="Talk to Sukoon.Brain…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendSukoon()}"></textarea><button class="btn" onclick="sendSukoon()">Send</button></div>
+ <div class="sukoon-foot"><span id="sukoonMode">Mode: Listen</span><button class="btn secondary" onclick="clearSukoonChat()">Clear chat</button></div>
+ <div class="notice section">Privacy: chat is stored locally on this device. Sukoon.Brain does not read minds or diagnose you.</div></div>`;
  m.style.display='block';
+ setTimeout(()=>{const x=$("sukoonInput");if(x)x.focus();const box=$("sukoonMessages");if(box)box.scrollTop=box.scrollHeight},30);
 }
-function sukoonAction(mode){
- const prompts={Listen:'What would you like to share right now?',Reflect:'What situation would you like to think through?',Analyze:'What pattern or problem have you noticed?',Act:'What would you like help taking action on?'};
- const v=prompt(prompts[mode]); if(!v)return; alert(`Sukoon.Brain • ${mode}\n\nI heard: ${v}\n\nYour companion can help you explore this from what you choose to share.`);
+function sukoonMessageHTML(x){return `<div class="sukoon-msg ${x.role==='user'?'user':'bot'}"><b>${x.role==='user'?'You':'Sukoon.Brain'}</b><div>${esc(x.text).replace(/\n/g,'<br>')}</div></div>`}
+function setSukoonMode(mode){const el=$("sukoonMode");if(el)el.textContent='Mode: '+mode;const input=$("sukoonInput");if(input)input.placeholder=`${mode}: write anything…`;}
+function sendSukoon(){
+ const input=$("sukoonInput"); if(!input)return; const text=input.value.trim(); if(!text)return;
+ const mode=(($("sukoonMode")?.textContent||'Mode: Listen').replace('Mode: ','')||'Listen');
+ const chat=sukoonStore(); chat.push({role:'user',text,mode,at:new Date().toISOString()});
+ const reply=sukoonLocalReply(mode,text); chat.push({role:'assistant',text:reply,mode,at:new Date().toISOString()}); sukoonSaveChat(chat); input.value=''; openSukoon();
 }
+function sukoonAction(mode){openSukoon();setTimeout(()=>setSukoonMode(mode),40)}
+function clearSukoonChat(){if(!confirm('Clear Sukoon.Brain local chat history?'))return;localStorage.removeItem('sciencehub-sukoon-chat-v1');openSukoon()}
 function initSukoonDrag(){
  const el=$("sukoonCompanion"); if(!el)return;
- let drag=false, sx=0, sy=0, ox=0, oy=0;
- const start=e=>{if(e.target.closest('button'))return;drag=true;const p=e.touches?e.touches[0]:e;const r=el.getBoundingClientRect();sx=p.clientX;sy=p.clientY;ox=r.left;oy=r.top;el.classList.add('dragging');e.preventDefault()};
- const move=e=>{if(!drag)return;const p=e.touches?e.touches[0]:e;let x=Math.max(4,Math.min(window.innerWidth-el.offsetWidth-4,ox+p.clientX-sx));let y=Math.max(4,Math.min(window.innerHeight-el.offsetHeight-4,oy+p.clientY-sy));el.style.left=x+'px';el.style.top=y+'px';el.style.right='auto';el.style.bottom='auto';e.preventDefault()};
- const end=()=>{if(!drag)return;drag=false;el.classList.remove('dragging');const r=el.getBoundingClientRect();db.settings.sukoonPosition={x:Math.round(r.left),y:Math.round(r.top)};localStorage.setItem(KEY,JSON.stringify(db));};
+ let drag=false, moved=false, sx=0, sy=0, ox=0, oy=0;
+ const start=e=>{if(e.target.closest('button'))return;drag=true;moved=false;const p=e.touches?e.touches[0]:e;const r=el.getBoundingClientRect();sx=p.clientX;sy=p.clientY;ox=r.left;oy=r.top;el.classList.add('dragging');e.preventDefault()};
+ const move=e=>{if(!drag)return;const p=e.touches?e.touches[0]:e;if(Math.abs(p.clientX-sx)+Math.abs(p.clientY-sy)>6)moved=true;let x=Math.max(4,Math.min(window.innerWidth-el.offsetWidth-4,ox+p.clientX-sx));let y=Math.max(4,Math.min(window.innerHeight-el.offsetHeight-4,oy+p.clientY-sy));el.style.left=x+'px';el.style.top=y+'px';el.style.right='auto';el.style.bottom='auto';e.preventDefault()};
+ const end=()=>{if(!drag)return;drag=false;el.classList.remove('dragging');window.__sukoonDragged=moved;if(moved){const r=el.getBoundingClientRect();db.settings.sukoonPosition={x:Math.round(r.left),y:Math.round(r.top)};localStorage.setItem(KEY,JSON.stringify(db))}};
  el.addEventListener('pointerdown',start,{passive:false});window.addEventListener('pointermove',move,{passive:false});window.addEventListener('pointerup',end);el.addEventListener('touchstart',start,{passive:false});window.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end);
 }
 function search(v){searchTerm=v;render()}
