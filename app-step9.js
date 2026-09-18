@@ -60,7 +60,11 @@ function home(){let p=db.tasks.find(x=>!x.done),d=db.tasks.filter(x=>x.done).len
 <div class="card"><small>🔄 REVISION DUE</small><h3>${db.revision.length} item(s)</h3><button class="secondary" onclick="go('revision')">Review</button></div>
 <div class="card wide"><small>📊 TODAY</small><h3>${db.minutes} min • ${d} tasks</h3></div>
 <div class="card wide"><small>🖤 KUROVEN</small><p>${p?"Stop planning. Start the highest-priority unfinished task now.":"No task exists. Create one small, specific task."}</p></div>
-</div></section>`}
+</div>
+${scienceHubStep68Markup()}
+${scienceHubStep9Card()}
+</section>`}
+
 function study(){return `<section><div class="row"><div><div class="eyebrow">STUDY</div><h1>Plan → Focus → Finish</h1></div><button class="btn" onclick="openTaskForm()">+ Task</button></div><div id="taskForm"></div><div class="section list">${db.tasks.length?db.tasks.map(t=>`<div class="item ${t.done?"done":""}"><div class="row"><b>${esc(t.title)}</b><span class="tag">${esc(t.priority||"normal")}</span></div><div class="muted">${esc(t.subject||"General")} ${t.chapter?"• "+esc(t.chapter):""} • ${t.minutes||0} min</div><div class="actions">${!t.done?`<button class="btn good" onclick="doneTask('${t.id}')">Complete +2</button>`:"<span class='goodtxt'>✓ Completed</span>"}<button class="btn secondary" onclick="delTask('${t.id}')">Remove</button></div></div>`).join(""):`<div class="card">No tasks yet. Add one small executable task.</div>`}</div></section>`}
 function openTaskForm(){document.getElementById("taskForm").innerHTML=`<div class="card form section"><input id="taskTitle" placeholder="e.g. Biology — Plant Kingdom diagrams"><select id="taskSubject">${subjects.map(s=>`<option>${s}</option>`).join("")}</select><select id="taskChapter"><option value="">No chapter</option></select><input id="taskMins" type="number" value="45" min="5"><select id="taskPriority"><option>high</option><option selected>normal</option><option>low</option></select><button class="btn" onclick="addTask()">Add task</button></div>`;fillChapters("taskSubject","taskChapter")}
 function fillChapters(a,b){const s=document.getElementById(a),c=document.getElementById(b);if(!s||!c)return;c.innerHTML=`<option value="">No chapter</option>`+db.chapters.filter(x=>x.subject===s.value).map(x=>`<option>${esc(x.name)}</option>`).join("");s.onchange=()=>fillChapters(a,b)}
@@ -110,7 +114,7 @@ render();
 
 /* === ScienceHub Step 6: Intelligence Center === */
 (function(){
-  const KEY='sciencehub-v1';
+  const KEY='sciencehub-v45';
   const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}};
   const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
   function getNextAction(x){
@@ -132,7 +136,7 @@ render();
 
 /* === ScienceHub Step 7: Tracking & Opportunities === */
 (function(){
-  const KEY='sciencehub-v1';
+  const KEY='sciencehub-v45';
   const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}};
   const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
   const init=()=>{
@@ -154,19 +158,19 @@ render();
 
 /* === ScienceHub Step 8: World Knowledge & Data Hardening === */
 (function(){
-  const KEY='sciencehub-v1';
+  const KEY='sciencehub-v45';
   const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}};
   const save=x=>localStorage.setItem(KEY,JSON.stringify(x));
   const x=load();
   x.worldKnowledge=Array.isArray(x.worldKnowledge)?x.worldKnowledge:[];
-  x.schemaVersion=8;
+  x.schemaVersion=Math.max(Number(x.schemaVersion||0),8);
   save(x);
   window.ScienceHubWorld={
     saveNote:function(title,summary){
       const d=load();
       d.worldKnowledge=Array.isArray(d.worldKnowledge)?d.worldKnowledge:[];
       d.worldKnowledge.push({id:Date.now(),title,summary:summary||'',savedAt:new Date().toISOString()});
-      d.schemaVersion=8; save(d);
+      d.schemaVersion=Math.max(Number(d.schemaVersion||0),8); save(d);
     },
     count:function(){return (load().worldKnowledge||[]).length;}
   };
@@ -174,34 +178,20 @@ render();
 
 
 /* === Step 6–8 UI === */
-(function(){
-  function mount(){
-    if(document.getElementById('sh68')) return;
-    const host=document.querySelector('main')||document.body;
-    const s=document.createElement('section');
-    s.id='sh68'; s.className='sh68-panel';
-    s.innerHTML='<div class="sh68-head"><div><span class="sh68-kicker">STEP 6–8</span><h2>Intelligence & Future Center</h2><p>Decide → Track → Save → Learn</p></div><button id="sh68-refresh">Refresh</button></div>'+
-      '<div class="sh68-grid"><article><b>Next Best Action</b><div id="sh68-action">—</div></article><article><b>Open Tasks</b><div id="sh68-tasks">0</div></article><article><b>Due Revision</b><div id="sh68-revision">0</div></article><article><b>Saved Opportunities</b><div id="sh68-opps">0</div></article><article><b>World Notes</b><div id="sh68-world">0</div></article></div>'+
-      '<div class="sh68-actions"><button id="sh68-goal">+ Goal</button><button id="sh68-exam">+ Exam</button><button id="sh68-opp">+ PCB Opportunity</button><button id="sh68-worldadd">+ World Note</button></div>';
-    host.prepend(s);
-    function render(){
-      const i=ScienceHubIntelligence.snapshot(), t=ScienceHubTracking.summary();
-      document.getElementById('sh68-action').textContent=i.nextAction[0];
-      document.getElementById('sh68-tasks').textContent=i.openTasks;
-      document.getElementById('sh68-revision').textContent=i.dueRevision;
-      document.getElementById('sh68-opps').textContent=t.opportunities;
-      document.getElementById('sh68-world').textContent=ScienceHubWorld.count();
-    }
-    document.getElementById('sh68-refresh').onclick=render;
-    document.getElementById('sh68-goal').onclick=()=>{const v=prompt('Goal name?');if(v){ScienceHubTracking.addGoal(v);render();}};
-    document.getElementById('sh68-exam').onclick=()=>{const v=prompt('Exam name?');if(v){ScienceHubTracking.addExam(v,'','Upcoming');render();}};
-    document.getElementById('sh68-opp').onclick=()=>{const v=prompt('PCB opportunity to save?');if(v){ScienceHubTracking.saveOpportunity(v,'PCB');render();}};
-    document.getElementById('sh68-worldadd').onclick=()=>{const v=prompt('World knowledge note?');if(v){ScienceHubWorld.saveNote(v,'');render();}};
-    render();
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
-})();
-
+function scienceHubStep68Markup(){
+  const i=window.ScienceHubIntelligence?.snapshot?.()||{nextAction:["Set today’s mission"],openTasks:0,dueRevision:0};
+  const t=window.ScienceHubTracking?.summary?.()||{opportunities:0};
+  const w=window.ScienceHubWorld?.count?.()||0;
+  return `<section id="sh68" class="sh68-panel">
+    <div class="sh68-head"><div><span class="sh68-kicker">STEP 6–8</span><h2>Intelligence & Future Center</h2><p>Decide → Track → Save → Learn</p></div><button onclick="render()">Refresh</button></div>
+    <div class="sh68-grid"><article><b>Next Best Action</b><div>${esc(i.nextAction?.[0]||"Set today’s mission")}</div></article><article><b>Open Tasks</b><div>${i.openTasks||0}</div></article><article><b>Due Revision</b><div>${i.dueRevision||0}</div></article><article><b>Saved Opportunities</b><div>${t.opportunities||0}</div></article><article><b>World Notes</b><div>${w}</div></article></div>
+    <div class="sh68-actions"><button onclick="addStep68Goal()">+ Goal</button><button onclick="addStep68Exam()">+ Exam</button><button onclick="addStep68Opportunity()">+ PCB Opportunity</button><button onclick="addStep68WorldNote()">+ World Note</button></div>
+  </section>`;
+}
+function addStep68Goal(){const v=prompt('Goal name?');if(v&&window.ScienceHubTracking){ScienceHubTracking.addGoal(v);render();}}
+function addStep68Exam(){const v=prompt('Exam name?');if(v&&window.ScienceHubTracking){ScienceHubTracking.addExam(v,'','Upcoming');render();}}
+function addStep68Opportunity(){const v=prompt('PCB opportunity to save?');if(v&&window.ScienceHubTracking){ScienceHubTracking.saveOpportunity(v,'PCB');render();}}
+function addStep68WorldNote(){const v=prompt('World knowledge note?');if(v&&window.ScienceHubWorld){ScienceHubWorld.saveNote(v,'');render();}}
 
 /* ===== ScienceHub Step 9: Personal Intelligence & Recovery ===== */
 const ScienceHubStep9 = {
@@ -251,6 +241,10 @@ const ScienceHubStep9 = {
 window.ScienceHubStep9 = ScienceHubStep9;
 
 
+function addStep9Priority(){const v=prompt('Priority to remember:');if(v){ScienceHubStep9.addPriority(v);render();}}
+function addStep9Checkin(){const v=prompt('Quick study check-in:');if(v){ScienceHubStep9.addCheckin(v);render();}}
+function addStep9Backup(){ScienceHubStep9.markBackup();render();}
+
 function scienceHubStep9Card() {
   const s = window.ScienceHubStep9?.snapshot?.() || {};
   return `
@@ -261,9 +255,9 @@ function scienceHubStep9Card() {
       </div>
       <p class="muted">Protect your progress, capture priorities, and keep a lightweight personal decision history.</p>
       <div class="sh-step9-grid">
-        <button onclick="ScienceHubStep9.addPriority(prompt('Priority to remember:') || ''); location.reload()">➕ Priority</button>
-        <button onclick="ScienceHubStep9.addCheckin(prompt('Quick study check-in:') || ''); location.reload()">🧠 Check-in</button>
-        <button onclick="ScienceHubStep9.markBackup(); alert('Backup checkpoint recorded.'); location.reload()">🛡️ Backup Checkpoint</button>
+        <button onclick="addStep9Priority()">➕ Priority</button>
+        <button onclick="addStep9Checkin()">🧠 Check-in</button>
+        <button onclick="addStep9Backup()">🛡️ Backup Checkpoint</button>
       </div>
       <div class="sh-step9-stats">
         <span>Open priorities: <b>${s.prioritiesOpen ?? 0}</b></span>
