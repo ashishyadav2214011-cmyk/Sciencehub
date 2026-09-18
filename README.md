@@ -33,3 +33,7 @@ Official model papers: https://upmsp.edu.in/Board_ModelPaper.aspx
 ### PYQ integrity
 
 A year appearing in the registry is a **source slot**, not a claim that a particular paper has been verified or that every set for that year exists. ScienceHub should attach a question only after its source is checked. This avoids fabricating PYQs.
+
+
+## V81 Home Universe visual refinement
+Home uses a personalized night-study hero derived from the supplied reference images with a subtle secondary-room blend. The visual hierarchy is calmer: Mission → Next Best Action → Today → Quick Access → AI → Personal Intelligence → Future → PCB. Empty zero-value dashboard grids are removed from Home; deeper intelligence/recovery controls remain accessible from dedicated areas.

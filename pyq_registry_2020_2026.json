@@ -1,0 +1,495 @@
+{
+  "policy": "Only verified papers should be attached to a chapter/topic. These are source-year slots, not fabricated question records.",
+  "records": [
+    {
+      "class": 11,
+      "subject": "Hindi",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Hindi",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Hindi",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Hindi",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Hindi",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Hindi",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Hindi",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "English",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "English",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "English",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "English",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "English",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "English",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "English",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Physics",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Physics",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Physics",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Physics",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Physics",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Physics",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Physics",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Chemistry",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Chemistry",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Chemistry",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Chemistry",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Chemistry",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Chemistry",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Chemistry",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Biology",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Biology",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Biology",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Biology",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Biology",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Biology",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 11,
+      "subject": "Biology",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://docs.aglasem.com/org/up-board/up-class-11/question-paper"
+    },
+    {
+      "class": 12,
+      "subject": "Hindi",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Hindi",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Hindi",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Hindi",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Hindi",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Hindi",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Hindi",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "English",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "English",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "English",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "English",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "English",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "English",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "English",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Physics",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Physics",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Physics",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Physics",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Physics",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Physics",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Physics",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Chemistry",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Chemistry",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Chemistry",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Chemistry",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Chemistry",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Chemistry",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Chemistry",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Biology",
+      "year": 2020,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Biology",
+      "year": 2021,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Biology",
+      "year": 2022,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Biology",
+      "year": 2023,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Biology",
+      "year": 2024,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Biology",
+      "year": 2025,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    },
+    {
+      "class": 12,
+      "subject": "Biology",
+      "year": 2026,
+      "status": "hub",
+      "source": "https://upboardbook.com/previous-year-papers/12th"
+    }
+  ]
+}

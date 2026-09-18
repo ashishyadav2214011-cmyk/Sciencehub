@@ -128,9 +128,8 @@ function home(){
   <div class="card section ai-center home-ai"><div class="eyebrow">AI COMMAND CENTER</div><h2>Choose your intelligence</h2><div class="ai-grid"><button onclick="aiRole('KuroVen')"><b>🖤 KuroVen</b><span>Action → execution</span></button><button onclick="aiRole('Hikaitage')"><b>🧭 Hikaitage</b><span>Learning + strategy</span></button><button onclick="aiRole('HukoVaige')"><b>🧠 HukoVaige</b><span>Patterns + reflection</span></button><button onclick="go('world')"><b>🌍 WORLD / Aui</b><span>Open when you call Aui</span></button></div></div>
   <div class="home-quote"><span>✦</span><div><small>YOUR NEXT THOUGHT</small><b>${esc(sukoonQuote())}</b></div></div>
   ${sukoonCompanionMarkup()}
-  ${step68Markup()}
-  ${step9Markup()}
-  <section class="card section home-future"><div class="eyebrow">YOUR HORIZON</div><h2>Future Possibilities</h2><p class="muted">Bioinformatics • research • scholarships • careers • competitions</p><button class="btn secondary" onclick="go('opportunities')">Explore</button></section>
+  <section class="card section home-intelligence-compact"><div class="eyebrow">🧠 PERSONAL INTELLIGENCE</div><h2>Your study patterns</h2><p class="muted">${openTasks().length||dueRevisions().length||db.mistakes.length ? 'ScienceHub is using your activity to shape the next useful step.' : 'Start a study session and ScienceHub will begin building your personal study map.'}</p><button class="btn secondary" onclick="go('progress')">Open Intelligence →</button></section>
+  <section class="card section home-future"><div class="eyebrow">🌌 YOUR HORIZON</div><h2>Future Possibilities</h2><p class="muted">Bioinformatics • research • scholarships • careers • competitions</p><button class="btn secondary" onclick="go('opportunities')">Explore →</button></section>
   <section class="card section pcb-final"><div class="eyebrow">FINAL SECTION</div><h2>🎯 PCB Opportunities</h2><p class="muted">Scholarships • Research • Courses • Internships • Careers • Competitions • Exam Tracker</p><div class="actions"><button class="btn" onclick="go('opportunities')">Open PCB Opportunities</button><button class="btn secondary" onclick="go('exam')">Exam Tracker</button></div></section>
  </section>`;
 }

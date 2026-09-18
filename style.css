@@ -81,3 +81,7 @@ body{min-height:100vh;padding-bottom:86px}.search-hit{display:flex;gap:10px;alig
 .syllabus-topics{display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 14px}
 .syllabus-topics span{font-size:.82rem;color:#d9e7f6;border:1px solid var(--line);background:#0b1b2e;padding:7px 9px;border-radius:10px}
 @media(max-width:620px){.segmented{width:100%}.segmented button{flex:1}.syllabus-topics span{font-size:.78rem}}
+
+/* V81 Home refinement */
+.home-intelligence-compact{background:linear-gradient(145deg,rgba(10,27,44,.82),rgba(7,16,29,.72));backdrop-filter:blur(12px);border-color:rgba(120,210,255,.20)}
+.home-intelligence-compact h2{margin:5px 0 6px;font-size:20px}.home-intelligence-compact p{max-width:620px}.home-intelligence-compact .btn{margin-top:6px}.home-future{position:relative;overflow:hidden}.home-future:after{content:"";position:absolute;right:-30px;top:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(100,170,255,.16),transparent 68%);pointer-events:none}.home-v3-head{padding-top:14px}.home-v3-head .eyebrow{font-size:10px}.home-v3-head p{max-width:460px}@media(max-width:600px){.home-v3-head{gap:10px;padding-top:8px}.home-v3-head h1{font-size:clamp(29px,8vw,38px)}.home-core{margin-top:2px}.home-search{margin-bottom:10px}.mission-core{padding:18px}.home-strip{margin-bottom:16px}.home-ai h2{font-size:18px}}
