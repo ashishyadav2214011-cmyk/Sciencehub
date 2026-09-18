@@ -3,12 +3,14 @@
  */
 const KEY = "sciencehub-v45";
 const OLD_KEY = "sciencehub-v1";
-const APP_VERSION = "V78-FINAL";
+const APP_VERSION = "V80-UPMSP-2026-27";
 const subjects = ["Biology","Physics","Chemistry","English","Hindi"];
 const statuses = ["Not Started","Learning","Learned","Revision Due","Strong","Weak","Mastered"];
 const priorities = ["high","normal","low"];
 const $ = id => document.getElementById(id);
 let current = "home";
+let syllabusData = null;
+let syllabusClass = 11;
 let searchTerm = "";
 let focusTimer = { end: 0, started: 0, durationMs: 0, taskId: null, interval: null };
 
@@ -246,9 +248,24 @@ function startFocus(tid){stopFocus(false);const mins=Math.max(1,Math.min(180,+pr
 function tickFocus(){const el=$("focusStatus");if(!focusTimer.interval)return;if(Date.now()>=focusTimer.end){const t=db.tasks.find(x=>x.id===focusTimer.taskId);if(t){const minutes=Math.max(1,Math.round(focusTimer.durationMs/60000));db.minutes+=minutes;ev("FOCUS_FINISHED",{taskId:t.id,minutes},false);localStorage.setItem(KEY,JSON.stringify(db));}stopFocus(false);if(el)el.textContent="Focus complete. Review what you learned.";return}const sec=Math.max(0,Math.ceil((focusTimer.end-Date.now())/1000));if(el)el.textContent=`Focus running • ${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`}
 function stopFocus(clear=true){if(focusTimer.interval)clearInterval(focusTimer.interval);focusTimer={end:0,started:0,durationMs:0,taskId:null,interval:null};if(clear)render()}
 
-function subjectsPage(){return `<section class="page"><div class="eyebrow">SUBJECTS</div><h1>Class 11 Core</h1><p class="muted">Class 12 is the next layer; Bioinformatics remains a long-term track.</p><div class="grid">${subjects.map(s=>{const cs=db.chapters.filter(c=>c.subject===s),done=cs.filter(c=>['Learned','Strong','Mastered'].includes(c.status)).length;return `<div class="card"><div class="row"><b>${s}</b><span class="tag">${done}/${cs.length}</span></div><div class="progress"><i style="width:${cs.length?done/cs.length*100:0}%"></i></div><button class="btn secondary section" onclick="subject('${s}')">Open</button></div>`}).join("")}</div></section>`}
+function subjectsPage(){
+ const cls=syllabusClass, data=syllabusData?.subjects?.[String(cls)]||{};
+ return `<section class="page"><div class="eyebrow">SUBJECTS • UPMSP 2026–27</div><div class="row"><div><h1>Class ${cls} Core</h1><p class="muted">Official UPMSP syllabus structure • headings → topics → PYQ hub.</p></div><button class="btn secondary" onclick="go('syllabus')">Full Syllabus</button></div>
+ <div class="segmented section"><button class="${cls===11?'active':''}" onclick="setSyllabusClass(11)">Class 11</button><button class="${cls===12?'active':''}" onclick="setSyllabusClass(12)">Class 12</button></div>
+ <div class="grid">${subjects.map(s=>{const v=data[s], tracked=db.chapters.filter(c=>c.subject===s),done=tracked.filter(c=>['Learned','Strong','Mastered'].includes(c.status)).length;return `<div class="card subject-card"><div class="row"><b>${s}</b><span class="tag">${v?.units?.length||0} units</span></div><div class="muted">${tracked.length?`${done}/${tracked.length} tracked`:v?.units?.map(u=>u[0]).slice(0,2).join(' • ')||'Syllabus loading…'}</div><div class="actions section"><button class="btn secondary" onclick="openSyllabusSubject(${cls},'${s}')">Open syllabus</button><button class="btn" onclick="openPYQHub(${cls},'${s}')">PYQs</button></div></div>`}).join('')}</div>
+ <div class="card section"><div class="row"><b>⚛️ Class 11 ↔ Class 12 bridge</b><span class="tag">Integrated</span></div><p class="muted">Class 11 is the active foundation; Class 12 is the next layer. Overlapping concepts can be connected without mixing exam-year records.</p></div></section>`;
+}
+function setSyllabusClass(cls){syllabusClass=cls;render()}
 function subject(s){current="subject:"+s;render()}
-function subjectPage(s){const cs=db.chapters.filter(c=>c.subject===s);return `<section class="page"><button class="btn secondary" onclick="go('subjects')">← Subjects</button><h1>${esc(s)}</h1><div class="list section">${cs.map(c=>`<div class="item"><div class="row"><b>${esc(c.name)}</b><select onchange="setStatus('${c.id}',this.value)">${statuses.map(x=>`<option ${x===c.status?'selected':''}>${x}</option>`).join('')}</select></div><div class="muted">Status changes revision attention; one mistake alone does not make a chapter weak.</div><div class="actions"><button class="btn secondary" onclick="quickRevision('${c.id}')">+ Revision</button><button class="btn secondary" onclick="addTopic('${c.id}')">+ Topic</button></div></div>`).join("")}</div>${db.topics.filter(t=>t.subject===s).length?`<div class="card section"><b>Topics</b>${db.topics.filter(t=>t.subject===s).map(t=>`<div class="item section">${esc(t.chapter)} • ${esc(t.name)}</div>`).join('')}</div>`:''}</section>`}
+function subjectPage(s){const cs=db.chapters.filter(c=>c.subject===s);return `<section class="page"><button class="btn secondary" onclick="go('subjects')">← Subjects</button><h1>${esc(s)}</h1><div class="list section">${cs.map(c=>`<div class="item"><div class="row"><b>${esc(c.name)}</b><select onchange="setStatus('${c.id}',this.value)">${statuses.map(x=>`<option ${x===c.status?'selected':''}>${x}</option>`).join('')}</select></div><div class="muted">Status changes revision attention; one mistake alone does not make a chapter weak.</div><div class="actions"><button class="btn secondary" onclick="quickRevision('${c.id}')">+ Revision</button><button class="btn secondary" onclick="addTopic('${c.id}')">+ Topic</button></div></div>`).join('')}</div></section>`}
+function syllabus(){
+ const cls=syllabusClass, data=syllabusData?.subjects?.[String(cls)]||{};
+ if(!syllabusData)return `<section class="page"><div class="eyebrow">UPMSP 2026–27</div><h1>Syllabus loading…</h1><p class="muted">Loading the locally cached syllabus index.</p></section>`;
+ return `<section class="page"><div class="eyebrow">UPMSP • SESSION 2026–27</div><div class="row"><div><h1>Complete Syllabus</h1><p class="muted">Class ${cls} • Hindi, English, Physics, Chemistry, Biology</p></div><a class="btn secondary" href="${syllabusData.meta.source_page}" target="_blank" rel="noopener">Official source</a></div><div class="segmented section"><button class="${cls===11?'active':''}" onclick="setSyllabusClass(11)">Class 11</button><button class="${cls===12?'active':''}" onclick="setSyllabusClass(12)">Class 12</button></div><div class="list section">${subjects.map(s=>{const v=data[s];return `<div class="card syllabus-subject"><div class="row"><h2>${s}</h2><span class="tag">${v?.code||''}</span></div><div class="muted">${v?.units?.length||0} syllabus sections • 2026–27</div><div class="list section">${(v?.units||[]).map((u,i)=>`<details class="syllabus-unit" ${i<1?'open':''}><summary><span><b>${esc(u[0])}</b><small>${esc(u[1])}</small></span><span>›</span></summary><div class="syllabus-topics">${(u[2]||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div></details>`).join('')}</div><div class="actions"><a class="btn secondary" href="${v?.url||'#'}" target="_blank" rel="noopener">Official PDF</a><button class="btn" onclick="openPYQHub(${cls},'${s}')">PYQ Hub 2020–26</button></div></div>`}).join('')}</div><div class="notice section"><b>PYQ rule:</b> ScienceHub never fabricates a previous-year question. Each year is treated as a source slot and should be attached only after the paper is verified.</div></section>`;
+}
+function openSyllabusSubject(cls,s){syllabusClass=cls;current='syllabus';render();setTimeout(()=>{const el=[...document.querySelectorAll('.syllabus-subject h2')].find(x=>x.textContent.trim()===s);el?.closest('.syllabus-subject')?.scrollIntoView({behavior:'smooth',block:'start'});},80)}
+function openPYQHub(cls,s){const url=syllabusData?.meta?.pyq_hubs?.[cls===11?'class11':'class12'];if(url)window.open(url,'_blank','noopener');ev('PYQ_HUB_OPENED',{class:cls,subject:s},false)}
+
 function setStatus(cid,v){const c=db.chapters.find(x=>x.id===cid);if(!c)return;c.status=v;if(v==='Revision Due')addRevision(c.subject,c.name,'Status marked Revision Due');ev('CHAPTER_STATUS',{chapter:c.name,status:v},false);save('chapter-status')}
 function addTopic(cid){const c=db.chapters.find(x=>x.id===cid),t=prompt('Topic name?');if(!c||!t)return;db.topics.push({id:id(),chapterId:cid,subject:c.subject,chapter:c.name,name:t});save('topic-created')}
 
@@ -329,7 +346,7 @@ function openDrawer(){
  const d=$("drawer");
  const groups=[
   {title:"Study Core",items:[
-   ["home","🏠","Home"],["academic","🎓","Academic"],["study","📅","Study Planner"],
+   ["home","🏠","Home"],["academic","🎓","Academic"],["syllabus","📘","UPMSP Syllabus 2026–27"],["study","📅","Study Planner"],
    ["subjects","📚","Subjects"],["learning","🧠","Learning Lab"],["practice","📝","Practice Lab"],["revision","🔁","Revision Engine"],
    ["progress","📈","Progress & Analytics"]]},
   {title:"Life & Future",items:[
@@ -362,7 +379,7 @@ function aiRole(role){const messages={KuroVen:"Action taker: choose one small us
 function kuro(){const a=nextAction();alert(`KuroVen: Start now → ${a.title}\n\nReason: ${a.why}`)}
 
 function render(){
- const map={home,study,subjects:subjectsPage,practice,learning,notes,flash,maps,resources,revision,mistakes,progress,academic,school,opportunities,time,space,world,exam:examTracker,recovery};
+ const map={home,study,subjects:subjectsPage,syllabus,practice,learning,notes,flash,maps,resources,revision,mistakes,progress,academic,school,opportunities,time,space,world,exam:examTracker,recovery};
  const fn=current.startsWith('subject:')?()=>subjectPage(current.slice(8)):(map[current]||home);
  $("app").innerHTML=fn();
  setTimeout(initSukoonDrag,0);
@@ -370,4 +387,5 @@ function render(){
 
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}
 window.addEventListener('beforeunload',()=>{if(focusTimer.interval)clearInterval(focusTimer.interval)});
-render();
+async function loadSyllabus(){try{const r=await fetch('./data/upmsp_syllabus_2026_27.json',{cache:'no-store'});if(r.ok)syllabusData=await r.json()}catch(e){syllabusData=null}render()}
+loadSyllabus();
