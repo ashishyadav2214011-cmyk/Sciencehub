@@ -1,51 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ScienceHub — 3D Icon Lab</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScienceHub - Live Brand Icon</title>
 <style>
-html,body{margin:0;height:100%;overflow:hidden;background:#050914;color:#eaf6ff;font-family:system-ui,sans-serif}canvas{display:block;width:100%;height:100%}
-.panel{position:fixed;z-index:2;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border:1px solid #24415d;border-radius:16px;background:rgba(7,15,27,.72);backdrop-filter:blur(12px)}
-.panel b{letter-spacing:.04em}.controls{display:flex;gap:7px;flex-wrap:wrap}.controls button,.controls input{border:1px solid #2a4762;background:#0c1a2b;color:#eaf6ff;border-radius:10px;padding:8px 10px}.hint{position:fixed;z-index:2;bottom:16px;left:50%;transform:translateX(-50%);padding:8px 12px;border-radius:999px;background:rgba(7,15,27,.7);border:1px solid #24415d;color:#9fb5ca;font-size:12px}
+*{box-sizing:border-box}body,html{margin:0;padding:0;width:100%;height:100%;background:#03030c;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff}
+.icon-card{position:relative;width:240px;height:240px;background:radial-gradient(135% 135% at 50% 10%,rgba(15,23,42,.8) 0%,rgba(3,3,12,.95) 100%);border-radius:48px;border:1px solid rgba(0,242,254,.3);box-shadow:0 20px 50px rgba(0,0,0,.8),0 0 30px rgba(0,242,254,.25),inset 0 1px 1px rgba(255,255,255,.2);display:flex;justify-content:center;align-items:center;cursor:pointer;transition:transform .3s ease,box-shadow .3s ease;backdrop-filter:blur(10px);overflow:hidden}
+.icon-card:hover{transform:translateY(-5px) scale(1.02);border-color:rgba(0,242,254,.8);box-shadow:0 25px 60px rgba(0,0,0,.9),0 0 45px rgba(0,242,254,.4),inset 0 1px 2px rgba(255,255,255,.4)}
+canvas{display:block;width:100%;height:100%;border-radius:48px}.description{margin-top:35px;text-align:center;max-width:450px;padding:0 20px}.brand-title{font-size:1.8rem;letter-spacing:4px;font-weight:300;margin:0 0 6px;background:linear-gradient(90deg,#fff,#00f2fe);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.brand-tag{font-size:.75rem;color:#00f2fe;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:20px;opacity:.9}.legend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;font-size:.8rem;text-align:left;background:rgba(255,255,255,.03);padding:15px;border-radius:12px;border:1px solid rgba(255,255,255,.05)}.legend-item{display:flex;align-items:center;gap:8px;color:#a0aec0}.dot{width:10px;height:10px;border-radius:50%;display:inline-block}.dot-nucleus{background:#fff;box-shadow:0 0 8px #00f2fe}.dot-orbit{background:#00f2fe;box-shadow:0 0 8px #00f2fe}.dot-strand1{background:#00f2fe}.dot-strand2{background:#ff007f}.hint{font-size:.75rem;color:#64748b;margin-top:15px}
+@media(max-width:520px){.icon-card{width:min(240px,72vw);height:min(240px,72vw)}.legend-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="panel"><b>⚛️ ScienceHub · 3D Icon Lab</b><div class="controls"><button id="theme">Neon</button><button id="spin">Auto-spin: ON</button><button id="reset">Reset</button><button onclick="location.href='./'">← App</button></div></div>
-<div class="hint">Drag to rotate • Pinch/scroll to zoom</div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<div class="icon-card" id="iconCard" title="Click to pulse quantum flare"><canvas id="iconCanvas"></canvas></div>
+<div class="description"><h2 class="brand-title">ScienceHub</h2><div class="brand-tag">Quantum Genetics Engine</div><div class="legend-grid"><div class="legend-item"><span class="dot dot-nucleus"></span><span>Atomic Core (Nucleus)</span></div><div class="legend-item"><span class="dot dot-orbit"></span><span>Electron Orbital Trails</span></div><div class="legend-item"><span class="dot dot-strand1"></span><span>DNA Strand A (5'→3')</span></div><div class="legend-item"><span class="dot dot-strand2"></span><span>DNA Strand B (3'→5')</span></div></div><div class="hint">⚡ Hover over icon to accelerate • Click to pulse energy core</div></div>
 <script>
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x050914);
-const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);camera.position.set(0,0,7);
-const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);document.body.appendChild(renderer.domElement);
-scene.add(new THREE.AmbientLight(0x8bbcff,.55));
-const key=new THREE.PointLight(0x61d8ff,3,18);key.position.set(3,3,5);scene.add(key);
-const fill=new THREE.PointLight(0x9d7bff,2.5,15);fill.position.set(-4,-2,2);scene.add(fill);
-const group=new THREE.Group();scene.add(group);
-const frame=new THREE.Mesh(new THREE.BoxGeometry(4.6,4.6,.55),new THREE.MeshPhysicalMaterial({color:0x101c2d,metalness:.8,roughness:.22,transparent:true,opacity:.95}));group.add(frame);
-const ringMat=new THREE.MeshBasicMaterial({color:0x61d8ff,transparent:true,opacity:.8});
-for(let r=1.55;r<=2.15;r+=.3){const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.018,10,128),ringMat);ring.rotation.x=Math.PI/2;group.add(ring)}
-const dna=new THREE.Group();group.add(dna);
-const tubeMat=new THREE.MeshStandardMaterial({color:0x9d7bff,emissive:0x36208f,emissiveIntensity:1.8,metalness:.35,roughness:.2});
-const nodeMat=new THREE.MeshStandardMaterial({color:0x61d8ff,emissive:0x0c6f9d,emissiveIntensity:2,metalness:.4,roughness:.15});
-for(let i=0;i<72;i++){
-  const t=i/71*Math.PI*4-Math.PI*2, y=(i/71-0.5)*3.1, rad=0.72, x=Math.cos(t)*rad, z=Math.sin(t)*rad;
-  for(const side of [1,-1]){const a=new THREE.Mesh(new THREE.SphereGeometry(.055,10,10),nodeMat);a.position.set(x*side,y,z*side);dna.add(a)}
-  if(i%3===0){const rod=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.44,8),tubeMat);rod.rotation.z=Math.PI/2;rod.position.set(0,y,0);rod.rotation.y=t;dna.add(rod)}
-}
-const helixA=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(Array.from({length:100},(_,i)=>{const t=i/99*Math.PI*4-Math.PI*2;return new THREE.Vector3(Math.cos(t)*.72,(i/99-.5)*3.1,Math.sin(t)*.72)})),64,.035,8,false),tubeMat);dna.add(helixA);
-const helixB=helixA.clone();helixB.scale.x=-1;dna.add(helixB);
-const particles=new THREE.Group();group.add(particles);const pm=new THREE.MeshBasicMaterial({color:0x8ee8ff});for(let i=0;i<180;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.012,5,5),pm);p.position.set((Math.random()-.5)*6,(Math.random()-.5)*6,(Math.random()-.5)*4);particles.add(p)}
-let auto=true,down=false,lastX=0,lastY=0;
-renderer.domElement.addEventListener('pointerdown',e=>{down=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture?.(e.pointerId)});
-renderer.domElement.addEventListener('pointerup',e=>{down=false;renderer.domElement.releasePointerCapture?.(e.pointerId)});
-renderer.domElement.addEventListener('pointermove',e=>{if(!down)return;group.rotation.y+=(e.clientX-lastX)*.008;group.rotation.x+=(e.clientY-lastY)*.008;lastX=e.clientX;lastY=e.clientY});
-renderer.domElement.addEventListener('wheel',e=>{camera.position.z=Math.max(4,Math.min(10,camera.position.z+e.deltaY*.004))},{passive:true});
-document.getElementById('spin').onclick=()=>{auto=!auto;document.getElementById('spin').textContent='Auto-spin: '+(auto?'ON':'OFF')};
-document.getElementById('reset').onclick=()=>{group.rotation.set(0,0,0);camera.position.set(0,0,7)};
-const themes=[{name:'Neon',a:0x61d8ff,b:0x9d7bff,bg:0x050914},{name:'Solar',a:0xffd166,b:0xff7c91,bg:0x140b05},{name:'Cyber',a:0x5effb1,b:0x61d8ff,bg:0x04110c}];let ti=0;
-document.getElementById('theme').onclick=()=>{ti=(ti+1)%themes.length;const t=themes[ti];key.color.setHex(t.a);fill.color.setHex(t.b);ringMat.color.setHex(t.a);nodeMat.color.setHex(t.a);tubeMat.color.setHex(t.b);scene.background.setHex(t.bg);document.getElementById('theme').textContent=t.name};
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const dt=clock.getDelta();if(auto)group.rotation.y+=dt*.22;particles.rotation.y+=dt*.03;renderer.render(scene,camera)}animate();
+const canvas=document.getElementById('iconCanvas');const ctx=canvas.getContext('2d');const card=document.getElementById('iconCard');
+const size=240;const dpr=window.devicePixelRatio||1;canvas.width=size*dpr;canvas.height=size*dpr;ctx.scale(dpr,dpr);
+let speedMultiplier=1.0;let targetSpeed=1.0;let pulseTime=0;
+card.addEventListener('mouseenter',()=>targetSpeed=2.2);card.addEventListener('mouseleave',()=>targetSpeed=1.0);card.addEventListener('touchstart',()=>{pulseTime=1.0;targetSpeed=2.2},{passive:true});card.addEventListener('touchend',()=>targetSpeed=1.0,{passive:true});card.addEventListener('click',()=>pulseTime=1.0);
+function drawIcon(timestamp){let t=timestamp*0.0015*speedMultiplier;speedMultiplier+=(targetSpeed-speedMultiplier)*0.05;if(pulseTime>0)pulseTime=Math.max(0,pulseTime-0.03);ctx.clearRect(0,0,size,size);const cx=size/2;const cy=size/2;
+const strandNodes=18;const helixHeight=160;const helixRadius=36;
+for(let i=0;i<=strandNodes;i++){let norm=i/strandNodes;let y=cy+(norm-0.5)*helixHeight;let angle=t*2.5+norm*Math.PI*3.5;let x1=cx+Math.sin(angle)*helixRadius;let z1=Math.cos(angle);let x2=cx+Math.sin(angle+Math.PI)*helixRadius;let z2=Math.cos(angle+Math.PI);
+if(i%2===0){ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);let alpha=((z1+z2+2)/4)*0.5;ctx.strokeStyle=`rgba(0,242,254,${alpha})`;ctx.lineWidth=1.5;ctx.stroke();ctx.beginPath();ctx.arc((x1+x2)/2,y,1.2,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.min(1,alpha+0.2)})`;ctx.fill()}
+let r1=(z1+1.5)*1.8;ctx.beginPath();ctx.arc(x1,y,Math.max(0.8,r1),0,Math.PI*2);ctx.fillStyle=z1>0?'#00f2fe':'rgba(0,242,254,.4)';ctx.shadowColor='#00f2fe';ctx.shadowBlur=z1>0?8:0;ctx.fill();ctx.shadowBlur=0;
+let r2=(z2+1.5)*1.8;ctx.beginPath();ctx.arc(x2,y,Math.max(0.8,r2),0,Math.PI*2);ctx.fillStyle=z2>0?'#ff007f':'rgba(255,0,127,.4)';ctx.shadowColor='#ff007f';ctx.shadowBlur=z2>0?8:0;ctx.fill();ctx.shadowBlur=0;}
+const orbits=[{tilt:Math.PI/4,radiusX:68,radiusY:24,speedOffset:0},{tilt:-Math.PI/4,radiusX:68,radiusY:24,speedOffset:Math.PI/3},{tilt:0,radiusX:72,radiusY:20,speedOffset:(Math.PI*2)/3}];
+orbits.forEach(orbit=>{ctx.save();ctx.translate(cx,cy);ctx.rotate(orbit.tilt);ctx.beginPath();ctx.ellipse(0,0,orbit.radiusX,orbit.radiusY,0,0,Math.PI*2);ctx.strokeStyle='rgba(0,242,254,.25)';ctx.lineWidth=1;ctx.setLineDash([4,6]);ctx.stroke();let eAngle=t*3.5+orbit.speedOffset;let ex=Math.cos(eAngle)*orbit.radiusX;let ey=Math.sin(eAngle)*orbit.radiusY;ctx.beginPath();ctx.arc(ex,ey,3,0,Math.PI*2);ctx.fillStyle='#fff';ctx.shadowColor='#00f2fe';ctx.shadowBlur=10;ctx.fill();ctx.shadowBlur=0;ctx.restore()});
+let baseRadius=12+Math.sin(t*6)*1.5+(pulseTime*10);let glowGrad=ctx.createRadialGradient(cx,cy,0,cx,cy,baseRadius*2.5);glowGrad.addColorStop(0,`rgba(255,255,255,${Math.min(1,0.9+pulseTime*0.1)})`);glowGrad.addColorStop(.3,`rgba(0,242,254,${Math.min(1,0.7+pulseTime*0.3)})`);glowGrad.addColorStop(1,'rgba(0,242,254,0)');ctx.beginPath();ctx.arc(cx,cy,baseRadius*2.5,0,Math.PI*2);ctx.fillStyle=glowGrad;ctx.fill();ctx.beginPath();ctx.arc(cx,cy,baseRadius*.8,0,Math.PI*2);ctx.fillStyle='#fff';ctx.shadowColor='#00f2fe';ctx.shadowBlur=15;ctx.fill();ctx.shadowBlur=0;requestAnimationFrame(drawIcon)}
+requestAnimationFrame(drawIcon);
 </script>
-</body></html>
+</body>
+</html>

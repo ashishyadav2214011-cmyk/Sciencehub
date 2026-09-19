@@ -1,9 +1,9 @@
-const CACHE="sciencehub-v85-syllabus-complete";
+const CACHE="sciencehub-v88-subjects-fixed";
 const ASSETS=[
  "./","./index.html","./css/style.css","./js/app.js","./data/syllabus-fallback.js","./manifest.json",
  "./assets/brand/sciencehub-icon.svg","./assets/brand/sciencehub-icon-192.png","./assets/brand/sciencehub-icon-512.png",
  "./assets/hero/home-hero-personal.png","./assets/companion/sukoon-brain-figure.png",
- "./data/upmsp_syllabus_2026_27.json","./data/pyq_registry_2020_2026.json"
+ "./data/upmsp_syllabus_2026_27.json","./data/pyq_registry_2020_2026.json","./icon-lab.html"
 ];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
