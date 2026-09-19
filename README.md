@@ -22,3 +22,7 @@ Open `index.html` in a browser. Core UI and syllabus fallback work without requi
 
 ## Important
 This package does not contain a hidden ChatGPT model or secret API key. Sukoon's generative mode requires a compatible endpoint configured in Settings.
+
+
+## V89 deep fix
+Runtime/cache version is V89. Subjects is generated directly from the UPMSP dataset and stale same-origin ScienceHub service-worker caches are cleared before the V89 worker is registered.
