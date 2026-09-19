@@ -3,7 +3,7 @@
  */
 const KEY = "sciencehub-v45";
 const OLD_KEY = "sciencehub-v1";
-const APP_VERSION = "V85-Syllabus-Complete-Functional";
+const APP_VERSION = "V89-Deep-Fixed";
 const subjects = ["Biology","Physics","Chemistry","English","Hindi"];
 const statuses = ["Not Started","Learning","Learned","Revision Due","Strong","Weak","Mastered"];
 const priorities = ["high","normal","low"];
@@ -13,6 +13,39 @@ let syllabusData = null;
 let syllabusClass = 11;
 let searchTerm = "";
 let focusTimer = { end: 0, started: 0, durationMs: 0, taskId: null, interval: null };
+const BUILD_ID = "SCIENCEHUB-V89-DEEP-FIXED";
+
+
+/* V86 Live ScienceHub Brand Icon — compact version of the Quantum Genetics Engine. */
+function initLiveBrandIcon(){
+ const canvas=document.getElementById('brandIconCanvas'); if(!canvas||canvas.dataset.ready==='1')return;
+ const ctx=canvas.getContext('2d'); if(!ctx)return;
+ const size=120,dpr=Math.min(window.devicePixelRatio||1,2); canvas.width=size*dpr; canvas.height=size*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); canvas.dataset.ready='1';
+ const card=canvas.parentElement; let speed=1,target=1,pulse=0,raf=0;
+ const setTarget=v=>target=v;
+ card.addEventListener('mouseenter',()=>setTarget(2.1)); card.addEventListener('mouseleave',()=>setTarget(1));
+ card.addEventListener('touchstart',()=>{pulse=1;target=1.8},{passive:true}); card.addEventListener('click',()=>{pulse=1});
+ function frame(ts){
+  speed+=(target-speed)*.07; if(pulse>0)pulse=Math.max(0,pulse-.035); const t=ts*.0015*speed;
+  ctx.clearRect(0,0,size,size); const cx=60,cy=60;
+  const strandNodes=14,helixHeight=92,helixRadius=20;
+  for(let i=0;i<=strandNodes;i++){
+   const norm=i/strandNodes,y=cy+(norm-.5)*helixHeight,angle=t*2.5+norm*Math.PI*3.5;
+   const x1=cx+Math.sin(angle)*helixRadius,z1=Math.cos(angle),x2=cx+Math.sin(angle+Math.PI)*helixRadius,z2=Math.cos(angle+Math.PI);
+   if(i%2===0){ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.strokeStyle=`rgba(0,242,254,${((z1+z2+2)/4)*.5})`;ctx.lineWidth=.9;ctx.stroke()}
+   const r1=Math.max(.7,(z1+1.5)*1.15),r2=Math.max(.7,(z2+1.5)*1.15);
+   ctx.beginPath();ctx.arc(x1,y,r1,0,Math.PI*2);ctx.fillStyle=z1>0?'#00f2fe':'rgba(0,242,254,.35)';ctx.shadowColor='#00f2fe';ctx.shadowBlur=z1>0?5:0;ctx.fill();ctx.shadowBlur=0;
+   ctx.beginPath();ctx.arc(x2,y,r2,0,Math.PI*2);ctx.fillStyle=z2>0?'#ff007f':'rgba(255,0,127,.35)';ctx.shadowColor='#ff007f';ctx.shadowBlur=z2>0?5:0;ctx.fill();ctx.shadowBlur=0;
+  }
+  const orbits=[{tilt:Math.PI/4,rx:36,ry:13,o:0},{tilt:-Math.PI/4,rx:36,ry:13,o:Math.PI/3},{tilt:0,rx:39,ry:11,o:2*Math.PI/3}];
+  ctx.setLineDash([2.5,4]);
+  orbits.forEach(o=>{ctx.save();ctx.translate(cx,cy);ctx.rotate(o.tilt);ctx.beginPath();ctx.ellipse(0,0,o.rx,o.ry,0,0,Math.PI*2);ctx.strokeStyle='rgba(0,242,254,.25)';ctx.lineWidth=.65;ctx.stroke();const a=t*3.5+o.o,ex=Math.cos(a)*o.rx,ey=Math.sin(a)*o.ry;ctx.setLineDash([]);ctx.beginPath();ctx.arc(ex,ey,1.8,0,Math.PI*2);ctx.fillStyle='#fff';ctx.shadowColor='#00f2fe';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;ctx.restore();ctx.setLineDash([2.5,4])});
+  const r=6+Math.sin(t*6)*.75+pulse*5; const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*2.5);g.addColorStop(0,`rgba(255,255,255,${Math.min(1,.9+pulse*.1)})`);g.addColorStop(.3,`rgba(0,242,254,${Math.min(1,.7+pulse*.3)})`);g.addColorStop(1,'rgba(0,242,254,0)');ctx.setLineDash([]);ctx.beginPath();ctx.arc(cx,cy,r*2.5,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();ctx.beginPath();ctx.arc(cx,cy,r*.8,0,Math.PI*2);ctx.fillStyle='#fff';ctx.shadowColor='#00f2fe';ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
+  raf=requestAnimationFrame(frame);
+ }
+ raf=requestAnimationFrame(frame);
+ window.addEventListener('beforeunload',()=>cancelAnimationFrame(raf),{once:true});
+}
 
 function fresh(){return {
   schemaVersion:15, appVersion:APP_VERSION,
@@ -284,8 +317,27 @@ function tickFocus(){const el=$("focusStatus");if(!focusTimer.interval)return;if
 function stopFocus(clear=true){if(focusTimer.interval)clearInterval(focusTimer.interval);focusTimer={end:0,started:0,durationMs:0,taskId:null,interval:null};if(clear)render()}
 
 function subjectsPage(){
- const cls=syllabusClass,data=syllabusData?.subjects?.[String(cls)]||{};
- return `<section class="page"><div class="eyebrow">SUBJECTS • UPMSP 2026–27</div><div class="row"><div><h1>Class ${cls} Core</h1><p class="muted">Complete placement: section → topic → tracking → PYQ.</p></div><button class="btn secondary" onclick="go('syllabus')">📘 Full Syllabus</button></div><div class="segmented section"><button class="${cls===11?'active':''}" onclick="setSyllabusClass(11)">Class 11</button><button class="${cls===12?'active':''}" onclick="setSyllabusClass(12)">Class 12</button></div><div class="grid">${subjects.map(s=>{const v=data[s],tracked=db.chapters.filter(c=>c.classLevel===cls&&c.subject===s),done=tracked.filter(c=>['Learned','Strong','Mastered'].includes(c.status)).length,units=v?.units?.length||0,topics=(v?.units||[]).reduce((n,u)=>n+(u[2]?.length||0),0);return `<div class="card subject-card"><div class="row"><b>${s}</b><span class="tag">${units} sections</span></div><div class="muted">${done}/${units} tracked • ${topics} syllabus topics</div><div class="actions section"><button class="btn secondary" onclick="subject('${s}',${cls})">Open subject</button><button class="btn" onclick="openSyllabusSubject(${cls},'${s}')">Full syllabus</button></div><div class="actions"><button class="btn secondary" onclick="openPYQHub(${cls},'${s}')">PYQ Hub 2020–26</button></div></div>`}).join('')}</div><div class="card section"><div class="row"><b>⚛️ Class 11 ↔ Class 12 bridge</b><span class="tag">Integrated</span></div><p class="muted">Class 11 is the active foundation; Class 12 is the next layer. Their records stay separate while overlapping concepts can connect.</p></div></section>`;
+ const cls=Number(syllabusClass)||11;
+ const data=syllabusData?.subjects?.[String(cls)]||{};
+ const totalSections=subjects.reduce((n,s)=>n+(data[s]?.units?.length||0),0);
+ const totalTopics=subjects.reduce((n,s)=>n+(data[s]?.units||[]).reduce((a,u)=>a+(u[2]?.length||0),0),0);
+ return `<section class="page subjects-v89">
+  <div class="eyebrow">SUBJECTS • UPMSP 2026–27</div>
+  <div class="subjects-v89-title row"><div><h1>Subjects</h1><p class="muted">Complete placement: <b>Class → Subject → Section → Topic</b></p></div><span class="build-badge">${APP_VERSION}</span></div>
+  <div class="segmented section class-switch" role="tablist" aria-label="Choose class">
+   <button class="${cls===11?'active':''}" aria-selected="${cls===11}" onclick="setSyllabusClass(11)">Class 11</button>
+   <button class="${cls===12?'active':''}" aria-selected="${cls===12}" onclick="setSyllabusClass(12)">Class 12</button>
+  </div>
+  <div class="class-banner section"><div><span class="eyebrow">ACTIVE CURRICULUM</span><h2>Class ${cls} Core</h2><p class="muted">${totalSections} syllabus sections • ${totalTopics} syllabus topics • 5 subjects</p></div><button class="btn" onclick="go('syllabus')">📘 Full Syllabus</button></div>
+  <div class="grid subject-grid-v89">${subjects.map(s=>{
+    const v=data[s]||{},units=v.units||[],tracked=db.chapters.filter(c=>Number(c.classLevel)===cls&&c.subject===s&&c.source==='UPMSP-2026-27');
+    const done=tracked.filter(c=>['Learned','Strong','Mastered'].includes(c.status)).length;
+    const topics=units.reduce((n,u)=>n+(u[2]?.length||0),0);
+    return `<article class="card subject-card-v89"><div class="subject-title-row"><h2>${esc(s)}</h2><span class="tag">${units.length} sections</span></div><div class="subject-big-number">${topics}<small> syllabus topics</small></div><div class="progress-track"><span style="width:${units.length?Math.min(100,Math.round(done/units.length*100)):0}%"></span></div><div class="muted completion-line">${done}/${units.length} sections completed</div><div class="subject-actions"><button class="btn" onclick="subject('${s}',${cls})">Open subject</button><button class="btn secondary" onclick="openSyllabusSubject(${cls},'${s}')">Full syllabus</button></div><button class="pyq-link" onclick="openPYQHub(${cls},'${s}')">PYQ Hub 2020–26 →</button></article>`
+  }).join('')}</div>
+  <div class="card section bridge-v89"><div class="row"><b>⚛️ Class 11 ↔ Class 12 bridge</b><span class="tag">Integrated</span></div><p class="muted">Both classes stay in the same Study OS. Switching class changes the active curriculum view; it does not delete or replace the other class.</p></div>
+  <div class="notice section"><b>Deep placement check:</b> This screen is generated directly from the embedded UPMSP syllabus dataset, so English/Hindi are not allowed to fall back to old tracked counts such as 0/0.</div>
+ </section>`;
 }
 function setSyllabusClass(cls){syllabusClass=Number(cls)||11;render()}
 function subject(s,cls=syllabusClass){syllabusClass=Number(cls)||11;current="subject:"+s;render()}
@@ -412,13 +464,14 @@ function aiRole(role){const messages={KuroVen:"Action taker: choose one small us
 function kuro(){const a=nextAction();alert(`KuroVen: Start now → ${a.title}\n\nReason: ${a.why}`)}
 
 function render(){
+ document.documentElement.dataset.sciencehubBuild=BUILD_ID;
  const map={home,study,subjects:subjectsPage,syllabus,practice,learning,notes,flash,maps,resources,revision,mistakes,progress,academic,school,opportunities,time,space,world,exam:examTracker,recovery};
  const fn=current.startsWith('subject:')?()=>subjectPage(current.slice(8)):(map[current]||home);
  $("app").innerHTML=fn();
  setTimeout(initSukoonDrag,0);
 }
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}
+if('serviceWorker' in navigator){window.addEventListener('load',async()=>{try{const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){if(r.scope.includes(location.origin))await r.unregister();}if(window.caches){const keys=await caches.keys();await Promise.all(keys.filter(k=>/^sciencehub-/i.test(k)).map(k=>caches.delete(k)));}const r=await navigator.serviceWorker.register('./sw.js?v=89',{updateViaCache:'none'});await r.update();}catch(e){}})}
 window.addEventListener('beforeunload',()=>{if(focusTimer.interval)clearInterval(focusTimer.interval)});
 async function loadSyllabus(){
   syllabusData=window.SCIENCEHUB_SYLLABUS||null;
@@ -431,3 +484,5 @@ async function loadSyllabus(){
   render();
 }
 loadSyllabus();
+
+window.addEventListener('DOMContentLoaded',initLiveBrandIcon);
