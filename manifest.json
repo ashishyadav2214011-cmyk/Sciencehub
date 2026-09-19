@@ -1,12 +1,12 @@
 {
-  "name": "ScienceHub \u2014 Ashu.Ayansh",
+  "name": "ScienceHub — Ashu.Ayansh",
   "short_name": "ScienceHub",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#07101c",
   "theme_color": "#07101c",
-  "description": "Personal Study OS \u2014 V84 functional consolidation + V80 functionality + V82 clean Home + Sukoon",
+  "description": "Personal Study OS — V85 complete UPMSP syllabus placement, Sukoon and offline-first study system",
   "icons": [
     {
       "src": "assets/brand/sciencehub-icon-192.png",
