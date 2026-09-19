@@ -3,7 +3,7 @@
  */
 const KEY = "sciencehub-v45";
 const OLD_KEY = "sciencehub-v1";
-const APP_VERSION = "V80-UPMSP-2026-27";
+const APP_VERSION = "V85-Syllabus-Complete-Functional";
 const subjects = ["Biology","Physics","Chemistry","English","Hindi"];
 const statuses = ["Not Started","Learning","Learned","Revision Due","Strong","Weak","Mastered"];
 const priorities = ["high","normal","low"];
@@ -27,18 +27,33 @@ function fresh(){return {
 }}
 
 function seedChapters(){return [
- {id:"bio-1",subject:"Biology",name:"The Living World",status:"Not Started"},
- {id:"bio-2",subject:"Biology",name:"Biological Classification",status:"Not Started"},
- {id:"bio-3",subject:"Biology",name:"Plant Kingdom",status:"Not Started"},
- {id:"bio-4",subject:"Biology",name:"Animal Kingdom",status:"Not Started"},
- {id:"bio-5",subject:"Biology",name:"Morphology of Flowering Plants",status:"Not Started"},
- {id:"phy-1",subject:"Physics",name:"Units and Measurements",status:"Not Started"},
- {id:"phy-2",subject:"Physics",name:"Motion in a Straight Line",status:"Not Started"},
- {id:"phy-3",subject:"Physics",name:"Motion in a Plane",status:"Not Started"},
- {id:"chem-1",subject:"Chemistry",name:"Some Basic Concepts of Chemistry",status:"Not Started"},
- {id:"chem-2",subject:"Chemistry",name:"Structure of Atom",status:"Not Started"},
- {id:"chem-3",subject:"Chemistry",name:"Classification of Elements",status:"Not Started"}
+ {id:"u11-1",classLevel:11,subject:"Hindi",name:"इकाई 1 — हिंदी गद्य साहित्य",status:"Not Started"},
+ {id:"u11-2",classLevel:11,subject:"Hindi",name:"इकाई 2 — हिंदी पद्य साहित्य",status:"Not Started"},
+ {id:"u11-3",classLevel:11,subject:"Hindi",name:"इकाई 3 — संस्कृत खंड",status:"Not Started"},
+ {id:"u11-4",classLevel:11,subject:"Hindi",name:"इकाई 4 — लेखन एवं व्याकरण",status:"Not Started"}
 ]}
+function syllabusChapterId(cls,subject,index){return `syllabus-${cls}-${subject.toLowerCase()}-${index+1}`}
+function syncSyllabusIntoStudyData(){
+ if(!syllabusData?.subjects)return;
+ for(const cls of [11,12]){
+  const group=syllabusData.subjects[String(cls)]||{};
+  for(const subject of subjects){
+   const entry=group[subject]; if(!entry)continue;
+   (entry.units||[]).forEach((unit,index)=>{
+    const cid=syllabusChapterId(cls,subject,index);
+    let ch=db.chapters.find(x=>x.id===cid);
+    if(!ch){ch={id:cid,classLevel:cls,subject,name:String(unit[0]||`Section ${index+1}`),status:"Not Started",source:"UPMSP-2026-27"};db.chapters.push(ch)}
+    else{ch.classLevel=cls;ch.subject=subject;ch.name=String(unit[0]||ch.name);ch.source="UPMSP-2026-27"}
+    (unit[2]||[]).forEach((topic,topicIndex)=>{
+     const name=String(topic);
+     if(!db.topics.some(t=>t.source==="UPMSP-2026-27"&&t.chapterId===cid&&t.name===name))db.topics.push({id:`${cid}-topic-${topicIndex+1}`,chapterId:cid,classLevel:cls,subject,chapter:ch.name,name,source:"UPMSP-2026-27"});
+    });
+   });
+  }
+ }
+ localStorage.setItem(KEY,JSON.stringify(db));
+}
+function upgradeSyllabusChapters(out){const seeded=seedChapters();const existing=new Set(out.chapters.map(c=>c.id));for(const c of seeded){if(!existing.has(c.id))out.chapters.push(c)}return out}
 
 function normalise(raw){
   const base=fresh(), x=raw&&typeof raw==='object'?raw:{};
@@ -54,6 +69,7 @@ function normalise(raw){
   out.settings=Object.assign(base.settings,x.settings||{});
   out.settings.sukoonPosition=Object.assign(base.settings.sukoonPosition,x.settings?.sukoonPosition||{});
   if(!out.chapters.length)out.chapters=seedChapters();
+  upgradeSyllabusChapters(out);
   out.schemaVersion=Math.max(Number(out.schemaVersion||0),15);
   out.appVersion=APP_VERSION;
   return out;
@@ -107,13 +123,18 @@ function nextAction(){
 
 function home(){
  const action=nextAction(), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length, task=openTasks()[0];
- return `<section class="page home-page home-v3">
-  <div class="home-ambient" aria-hidden="true"></div>
-  <div class="home-v3-head">
-   <div><div class="eyebrow">SCIENCEHUB • PERSONAL KNOWLEDGE UNIVERSE</div><h1>Good evening, Ashu.Ayansh.</h1><p>Calm enough to think. Clear enough to act.</p></div>
-   <div class="home-core" aria-hidden="true"><img src="sciencehub-icon.png" alt=""><span></span></div>
-  </div>
-  <div class="search home-search"><input value="${esc(searchTerm)}" placeholder="🌐 Search your ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
+ return `<section class="page home-page home-v4">
+  <section class="home-hero-real">
+   <img src="./assets/hero/home-hero-personal.png" alt="Personal ScienceHub study-space hero artwork">
+   <div class="home-hero-shade"></div>
+   <div class="home-hero-copy">
+    <div class="eyebrow">SCIENCEHUB • PERSONAL STUDY UNIVERSE</div>
+    <h1>Good evening, Ashu.Ayansh.</h1>
+    <p>Understand → Practice → Measure → Improve → Execute</p>
+    <div class="hero-pills"><span>Class 11 Core</span><span>Local-first</span><span>Personal use</span></div>
+   </div>
+  </section>
+  <div class="home-search search"><input value="${esc(searchTerm)}" placeholder="🌐 Search your ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
   ${searchTerm?searchResults():''}
   <div class="mission-core">
    <div class="mission-kicker"><span>🎯 TODAY'S MISSION</span><span class="mission-status">${task?'READY':'OPEN'}</span></div>
@@ -133,12 +154,11 @@ function home(){
   <section class="card section pcb-final"><div class="eyebrow">FINAL SECTION</div><h2>🎯 PCB Opportunities</h2><p class="muted">Scholarships • Research • Courses • Internships • Careers • Competitions • Exam Tracker</p><div class="actions"><button class="btn" onclick="go('opportunities')">Open PCB Opportunities</button><button class="btn secondary" onclick="go('exam')">Exam Tracker</button></div></section>
  </section>`;
 }
-
 function sukoonCompanionMarkup(){
  const pos=db.settings?.sukoonPosition||{};
  const style=(Number.isFinite(pos.x)&&Number.isFinite(pos.y))?`left:${pos.x}px;top:${pos.y}px;right:auto;bottom:auto;`:'right:14px;bottom:84px;';
  return `<div id="sukoonCompanion" class="sukoon-float" style="${style}" role="button" tabindex="0" aria-label="Open Sukoon.Brain companion" onclick="sukoonTap(event)" onkeydown="if(event.key==='Enter'||event.key===' ')openSukoon()">
-   <div class="sukoon-orbit"><img src="sukoon-brain-figure.png" alt="Sukoon.Brain ScienceHub companion"></div><span class="sukoon-pulse"></span><span class="sukoon-drag" aria-hidden="true">⠿</span>
+   <div class="sukoon-orbit"><img src="./assets/companion/sukoon-brain-figure.png" alt="Sukoon.Brain ScienceHub companion"></div><span class="sukoon-pulse"></span><span class="sukoon-drag" aria-hidden="true">⠿</span>
  </div>`;
 }
 function sukoonStore(){
@@ -201,7 +221,7 @@ function sukoonLocalReply(mode,text){
 function openSukoon(){
  const m=$("modal"), chat=sukoonStore();
  m.innerHTML=`<div class="modalbox sukoon-chat-modal"><div class="row"><div><div class="eyebrow">SCIENCEHUB COMPANION</div><h2>🤍 Sukoon.Brain</h2><p class="muted">Companion + understanding layer • local-first</p></div><button class="iconbtn" onclick="closeModal()" aria-label="Close Sukoon.Brain">✕</button></div>
- <div class="sukoon-chat-head"><img src="sukoon-brain-figure.png" alt="Sukoon.Brain"><div><b>I'm listening.</b><small>Talk naturally. I respond from what you choose to share.</small></div></div>
+ <div class="sukoon-chat-head"><img src="./assets/companion/sukoon-brain-figure.png" alt="Sukoon.Brain"><div><b>I'm listening.</b><small>Talk naturally. I respond from what you choose to share.</small></div></div>
  <div id="sukoonMessages" class="sukoon-messages">${chat.length?chat.map(sukoonMessageHTML).join(''):`<div class="sukoon-msg bot"><b>Sukoon.Brain</b><div>Hey, Ashu 🤍. You can start anywhere. Tell me what you want to talk through.</div></div>`}</div>
  <div class="sukoon-modebar">${['Listen','Reflect','Analyze','Act'].map(x=>`<button onclick="setSukoonMode('${x}')">${x}</button>`).join('')}</div>
  <div class="sukoon-composer"><textarea id="sukoonInput" rows="2" placeholder="Talk to Sukoon.Brain…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendSukoon()}"></textarea><button class="btn" onclick="sendSukoon()">Send</button></div>
@@ -212,12 +232,28 @@ function openSukoon(){
 }
 function sukoonMessageHTML(x){return `<div class="sukoon-msg ${x.role==='user'?'user':'bot'}"><b>${x.role==='user'?'You':'Sukoon.Brain'}</b><div>${esc(x.text).replace(/\n/g,'<br>')}</div></div>`}
 function setSukoonMode(mode){const el=$("sukoonMode");if(el)el.textContent='Mode: '+mode;const input=$("sukoonInput");if(input)input.placeholder=`${mode}: write anything…`;}
-function sendSukoon(){
+async function sendSukoon(){
  const input=$("sukoonInput"); if(!input)return; const text=input.value.trim(); if(!text)return;
- const mode=(($("sukoonMode")?.textContent||'Mode: Listen').replace('Mode: ','')||'Listen');
- const chat=sukoonStore(); chat.push({role:'user',text,mode,at:new Date().toISOString()});
- const reply=sukoonLocalReply(mode,text); chat.push({role:'assistant',text:reply,mode,at:new Date().toISOString()}); sukoonSaveChat(chat); input.value=''; openSukoon();
+ const mode=((($("sukoonMode")?.textContent||'Mode: Listen').replace('Mode: ','')||'Listen'));
+ const chat=sukoonStore(); chat.push({role:'user',text,mode,at:new Date().toISOString()}); sukoonSaveChat(chat); input.value=''; openSukoon();
+ const box=$("sukoonMessages"); if(box){box.insertAdjacentHTML('beforeend',sukoonMessageHTML({role:'assistant',text:'Thinking…',mode,at:new Date().toISOString(),pending:true}));box.scrollTop=box.scrollHeight;}
+ let reply='';
+ try{ reply=await sukoonProviderReply(mode,text,chat); }catch(e){ reply=sukoonLocalReply(mode,text)+'\n\n[Local mode: connect an AI endpoint in Settings for richer generative conversation.]'; }
+ const fresh=sukoonStore(); if(fresh.length && fresh[fresh.length-1].pending) fresh.pop(); fresh.push({role:'assistant',text:reply,mode,at:new Date().toISOString()}); sukoonSaveChat(fresh); openSukoon();
 }
+async function sukoonProviderReply(mode,text,chat){
+ const endpoint=(db.settings?.aiEndpoint||'').trim();
+ if(!endpoint || (db.settings?.aiProvider||'local')==='local') return sukoonLocalReply(mode,text);
+ const recent=chat.slice(-12).map(x=>({role:x.role==='assistant'?'assistant':'user',content:x.text}));
+ const system=`You are Sukoon.Brain inside ScienceHub. You are a warm, calm, privacy-first companion and understanding layer. Respond only to what the user expresses and permitted ScienceHub context. Do not claim mind-reading, diagnosis, or human identity. Help with reflection, study, planning, and practical next actions. Current mode: ${mode}. ${sukoonContext()}`;
+ const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:db.settings?.aiModel||'',messages:[{role:'system',content:system},...recent],mode,context:sukoonContext()})});
+ if(!res.ok) throw new Error('AI endpoint '+res.status);
+ const data=await res.json();
+ const reply=data.reply||data.output||data.message?.content||data.choices?.[0]?.message?.content;
+ if(!reply) throw new Error('No reply in endpoint response');
+ return String(reply);
+}
+
 function sukoonAction(mode){openSukoon();setTimeout(()=>setSukoonMode(mode),40)}
 function clearSukoonChat(){if(!confirm('Clear Sukoon.Brain local chat history?'))return;localStorage.removeItem('sciencehub-sukoon-chat-v1');openSukoon()}
 function initSukoonDrag(){
@@ -242,21 +278,19 @@ function doneTask(tid){const t=db.tasks.find(x=>x.id===tid);if(!t||t.done)return
 function startTask(tid){const t=db.tasks.find(x=>x.id===tid);if(!t)return;current="study";render();startFocus(tid)}
 function archiveTask(tid){const t=db.tasks.find(x=>x.id===tid);if(!t)return;db.recovery.unshift({id:id(),kind:"task",item:t,archivedAt:new Date().toISOString()});db.tasks=db.tasks.filter(x=>x.id!==tid);save("task-archived")}
 function focusPanel(){return `<div class="card focus-panel section"><div class="row"><div><b>⏳ Focus Mode</b><div class="muted">Active Study Duration is counted only while the focus session runs.</div></div><button class="btn secondary" onclick="focusQuick()">25 min</button></div><div id="focusStatus" class="focus-status">No active focus session.</div></div>`}
-function focusQuick(){const t=openTasks()[0];if(t)startFocus(t.id);else alert("Create a task first.")}
-function startFocus(tid){stopFocus(false);const mins=Math.max(1,Math.min(180,+prompt("Focus duration in minutes?","25")||25));focusTimer={end:Date.now()+mins*60000,started:Date.now(),durationMs:mins*60000,taskId:tid,interval:setInterval(tickFocus,1000)};tickFocus();}
+function focusQuick(){const t=openTasks()[0];if(t){startFocus(t.id,25)}else alert("Create a task first.")}
+function startFocus(tid,requestedMinutes=null){stopFocus(false);const mins=Math.max(1,Math.min(180,requestedMinutes??(+prompt("Focus duration in minutes?","25")||25)));focusTimer={end:Date.now()+mins*60000,started:Date.now(),durationMs:mins*60000,taskId:tid,interval:setInterval(tickFocus,1000)};tickFocus();}
 function tickFocus(){const el=$("focusStatus");if(!focusTimer.interval)return;if(Date.now()>=focusTimer.end){const t=db.tasks.find(x=>x.id===focusTimer.taskId);if(t){const minutes=Math.max(1,Math.round(focusTimer.durationMs/60000));db.minutes+=minutes;ev("FOCUS_FINISHED",{taskId:t.id,minutes},false);localStorage.setItem(KEY,JSON.stringify(db));}stopFocus(false);if(el)el.textContent="Focus complete. Review what you learned.";return}const sec=Math.max(0,Math.ceil((focusTimer.end-Date.now())/1000));if(el)el.textContent=`Focus running • ${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`}
 function stopFocus(clear=true){if(focusTimer.interval)clearInterval(focusTimer.interval);focusTimer={end:0,started:0,durationMs:0,taskId:null,interval:null};if(clear)render()}
 
 function subjectsPage(){
- const cls=syllabusClass, data=syllabusData?.subjects?.[String(cls)]||{};
- return `<section class="page"><div class="eyebrow">SUBJECTS • UPMSP 2026–27</div><div class="row"><div><h1>Class ${cls} Core</h1><p class="muted">Official UPMSP syllabus structure • headings → topics → PYQ hub.</p></div><button class="btn secondary" onclick="go('syllabus')">Full Syllabus</button></div>
- <div class="segmented section"><button class="${cls===11?'active':''}" onclick="setSyllabusClass(11)">Class 11</button><button class="${cls===12?'active':''}" onclick="setSyllabusClass(12)">Class 12</button></div>
- <div class="grid">${subjects.map(s=>{const v=data[s], tracked=db.chapters.filter(c=>c.subject===s),done=tracked.filter(c=>['Learned','Strong','Mastered'].includes(c.status)).length;return `<div class="card subject-card"><div class="row"><b>${s}</b><span class="tag">${v?.units?.length||0} units</span></div><div class="muted">${tracked.length?`${done}/${tracked.length} tracked`:v?.units?.map(u=>u[0]).slice(0,2).join(' • ')||'Syllabus loading…'}</div><div class="actions section"><button class="btn secondary" onclick="openSyllabusSubject(${cls},'${s}')">Open syllabus</button><button class="btn" onclick="openPYQHub(${cls},'${s}')">PYQs</button></div></div>`}).join('')}</div>
- <div class="card section"><div class="row"><b>⚛️ Class 11 ↔ Class 12 bridge</b><span class="tag">Integrated</span></div><p class="muted">Class 11 is the active foundation; Class 12 is the next layer. Overlapping concepts can be connected without mixing exam-year records.</p></div></section>`;
+ const cls=syllabusClass,data=syllabusData?.subjects?.[String(cls)]||{};
+ return `<section class="page"><div class="eyebrow">SUBJECTS • UPMSP 2026–27</div><div class="row"><div><h1>Class ${cls} Core</h1><p class="muted">Complete placement: section → topic → tracking → PYQ.</p></div><button class="btn secondary" onclick="go('syllabus')">📘 Full Syllabus</button></div><div class="segmented section"><button class="${cls===11?'active':''}" onclick="setSyllabusClass(11)">Class 11</button><button class="${cls===12?'active':''}" onclick="setSyllabusClass(12)">Class 12</button></div><div class="grid">${subjects.map(s=>{const v=data[s],tracked=db.chapters.filter(c=>c.classLevel===cls&&c.subject===s),done=tracked.filter(c=>['Learned','Strong','Mastered'].includes(c.status)).length,units=v?.units?.length||0,topics=(v?.units||[]).reduce((n,u)=>n+(u[2]?.length||0),0);return `<div class="card subject-card"><div class="row"><b>${s}</b><span class="tag">${units} sections</span></div><div class="muted">${done}/${units} tracked • ${topics} syllabus topics</div><div class="actions section"><button class="btn secondary" onclick="subject('${s}',${cls})">Open subject</button><button class="btn" onclick="openSyllabusSubject(${cls},'${s}')">Full syllabus</button></div><div class="actions"><button class="btn secondary" onclick="openPYQHub(${cls},'${s}')">PYQ Hub 2020–26</button></div></div>`}).join('')}</div><div class="card section"><div class="row"><b>⚛️ Class 11 ↔ Class 12 bridge</b><span class="tag">Integrated</span></div><p class="muted">Class 11 is the active foundation; Class 12 is the next layer. Their records stay separate while overlapping concepts can connect.</p></div></section>`;
 }
-function setSyllabusClass(cls){syllabusClass=cls;render()}
-function subject(s){current="subject:"+s;render()}
-function subjectPage(s){const cs=db.chapters.filter(c=>c.subject===s);return `<section class="page"><button class="btn secondary" onclick="go('subjects')">← Subjects</button><h1>${esc(s)}</h1><div class="list section">${cs.map(c=>`<div class="item"><div class="row"><b>${esc(c.name)}</b><select onchange="setStatus('${c.id}',this.value)">${statuses.map(x=>`<option ${x===c.status?'selected':''}>${x}</option>`).join('')}</select></div><div class="muted">Status changes revision attention; one mistake alone does not make a chapter weak.</div><div class="actions"><button class="btn secondary" onclick="quickRevision('${c.id}')">+ Revision</button><button class="btn secondary" onclick="addTopic('${c.id}')">+ Topic</button></div></div>`).join('')}</div></section>`}
+function setSyllabusClass(cls){syllabusClass=Number(cls)||11;render()}
+function subject(s,cls=syllabusClass){syllabusClass=Number(cls)||11;current="subject:"+s;render()}
+function subjectPage(s){const cls=syllabusClass,cs=db.chapters.filter(c=>c.classLevel===cls&&c.subject===s),source=syllabusData?.subjects?.[String(cls)]?.[s];return `<section class="page"><button class="btn secondary" onclick="go('subjects')">← Subjects</button><div class="eyebrow">CLASS ${cls} • UPMSP 2026–27</div><div class="row"><div><h1>${esc(s)}</h1><p class="muted">Every syllabus section is tracked here; source topics are indexed for search.</p></div><button class="btn secondary" onclick="go('syllabus')">Full Syllabus</button></div><div class="list section">${cs.map((c,i)=>{const topics=source?.units?.[i]?.[2]||db.topics.filter(t=>t.chapterId===c.id).map(t=>t.name);return `<div class="item"><div class="row"><div><b>${esc(c.name)}</b><div class="muted">${topics.length} topics</div></div><select onchange="setStatus('${c.id}',this.value)">${statuses.map(x=>`<option ${x===c.status?'selected':''}>${x}</option>`).join('')}</select></div><div class="topic-chips">${topics.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="actions"><button class="btn secondary" onclick="quickRevision('${c.id}')">+ Revision</button><button class="btn secondary" onclick="addTopic('${c.id}')">+ Topic</button></div></div>`}).join('')}</div><div class="notice section"><b>Placement:</b> Class ${cls} → ${s} → section → topic. Use <b>Full Syllabus</b> for the complete board view.</div></section>`}
+
 function syllabus(){
  const cls=syllabusClass, data=syllabusData?.subjects?.[String(cls)]||{};
  if(!syllabusData)return `<section class="page"><div class="eyebrow">UPMSP 2026–27</div><h1>Syllabus loading…</h1><p class="muted">Loading the locally cached syllabus index.</p></section>`;
@@ -371,7 +405,7 @@ function exportData(silent){db.step9.lastBackup=new Date().toISOString();db.step
 function importData(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const incoming=normalise(JSON.parse(r.result));if(!confirm('Replace current local ScienceHub data with this backup?'))return;db=incoming;save('backup-import');alert('Backup imported.') }catch(e){alert('Invalid backup file.')}};r.readAsText(f)};i.click()}
 function openSettings(){
  const q=db.settings.quiet!==false;
- $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>⚙️ Settings</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Local-first • PWA • user-controlled data</p><label class="setting"><input type="checkbox" ${q?'checked':''} onchange="setSetting('quiet',this.checked)"> Quiet Mode preference</label><label class="setting"><input type="checkbox" ${db.settings.sukoonContext!==false?'checked':''} onchange="setSetting('sukoonContext',this.checked)"> Allow Sukoon.Brain to use permitted ScienceHub context</label><label class="setting"><span>Camera Mode</span><select onchange="setSetting('cameraMode',this.value)"><option ${db.settings.cameraMode==='off'?'selected':''}>off</option><option ${db.settings.cameraMode==='preview'?'selected':''}>preview</option><option ${db.settings.cameraMode==='capture'?'selected':''}>capture</option></select></label><div class="notice section">ScienceHub can store the preference, but a web page cannot silently control phone-level calls or notifications.</div><div class="notice section"><b>AI bridge:</b> this GitHub build stays local-first. An optional server endpoint can be configured in a future hosted backend; no secret API key is embedded in this app.</div><div class="actions"><button class="btn" onclick="exportData(false)">Export Backup</button><button class="btn secondary" onclick="closeModal()">Close</button></div></div>`;$("modal").style.display='block'}
+ $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>⚙️ Settings</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Local-first • PWA • user-controlled data</p><label class="setting"><input type="checkbox" ${q?'checked':''} onchange="setSetting('quiet',this.checked)"> Quiet Mode preference</label><label class="setting"><input type="checkbox" ${db.settings.sukoonContext!==false?'checked':''} onchange="setSetting('sukoonContext',this.checked)"> Allow Sukoon.Brain to use permitted ScienceHub context</label><label class="setting"><span>Camera Mode</span><select onchange="setSetting('cameraMode',this.value)"><option ${db.settings.cameraMode==='off'?'selected':''}>off</option><option ${db.settings.cameraMode==='preview'?'selected':''}>preview</option><option ${db.settings.cameraMode==='capture'?'selected':''}>capture</option></select></label><div class="notice section">ScienceHub can store the preference, but a web page cannot silently control phone-level calls or notifications.</div><div class="card section"><div class="eyebrow">SUKOON AI BRIDGE</div><p class="muted">Local mode works offline. For ChatGPT-like generative replies, configure your own compatible server endpoint; no secret key is stored here.</p><label class="setting"><span>Provider</span><select onchange="setSetting('aiProvider',this.value)"><option value="local" ${db.settings.aiProvider==='local'?'selected':''}>Local</option><option value="endpoint" ${db.settings.aiProvider==='endpoint'?'selected':''}>Custom endpoint</option></select></label><label class="setting"><span>AI endpoint</span><input value="${esc(db.settings.aiEndpoint||'')}" placeholder="https://your-server.example/chat" onchange="setSetting('aiEndpoint',this.value)"></label><label class="setting"><span>Model name</span><input value="${esc(db.settings.aiModel||'')}" placeholder="Optional model name" onchange="setSetting('aiModel',this.value)"></label></div><div class="actions"><button class="btn" onclick="exportData(false)">Export Backup</button><button class="btn secondary" onclick="closeModal()">Close</button></div></div>`;$("modal").style.display='block'}
 function setSetting(k,v){db.settings[k]=v;localStorage.setItem(KEY,JSON.stringify(db))}
 function closeModal(){$("modal").style.display='none'}
 function aiRole(role){const messages={KuroVen:"Action taker: choose one small useful action and start it now.",Hikaitage:"Learning strategist with a 30+ years teaching-style approach: connect where, what, how, why and when before you act.",HukoVaige:"Psychology lens with a 45+ years psychologist-style approach: notice patterns, curiosity, growth and the reality of what is helping or blocking you."};alert(`${role}\n\n${messages[role]||"Choose a role."}`)}
@@ -386,5 +420,14 @@ function render(){
 
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}))}
 window.addEventListener('beforeunload',()=>{if(focusTimer.interval)clearInterval(focusTimer.interval)});
-async function loadSyllabus(){try{const r=await fetch('./data/upmsp_syllabus_2026_27.json',{cache:'no-store'});if(r.ok)syllabusData=await r.json()}catch(e){syllabusData=null}render()}
+async function loadSyllabus(){
+  syllabusData=window.SCIENCEHUB_SYLLABUS||null;
+  render();
+  try{
+    const r=await fetch('./data/upmsp_syllabus_2026_27.json',{cache:'no-store'});
+    if(r.ok) syllabusData=await r.json();
+  }catch(e){/* file:// and offline fallback intentionally use embedded data */}
+  syncSyllabusIntoStudyData();
+  render();
+}
 loadSyllabus();
