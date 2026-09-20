@@ -1,9 +1,9 @@
-/* ScienceHub V73 — unified local-first Study OS runtime
+/* ScienceHub V92 — refined integrated local-first Study OS runtime
  * Single data store, deterministic rendering, migration-safe, offline-first.
  */
 const KEY = "sciencehub-v45";
 const OLD_KEY = "sciencehub-v1";
-const APP_VERSION = "V89-Deep-Fixed";
+const APP_VERSION = "V92-Refined-Integrated";
 const subjects = ["Biology","Physics","Chemistry","English","Hindi"];
 const statuses = ["Not Started","Learning","Learned","Revision Due","Strong","Weak","Mastered"];
 const priorities = ["high","normal","low"];
@@ -13,7 +13,7 @@ let syllabusData = null;
 let syllabusClass = 11;
 let searchTerm = "";
 let focusTimer = { end: 0, started: 0, durationMs: 0, taskId: null, interval: null };
-const BUILD_ID = "SCIENCEHUB-V89-DEEP-FIXED";
+const BUILD_ID = "SCIENCEHUB-V92-REFINED-INTEGRATED";
 
 
 /* V86 Live ScienceHub Brand Icon — compact version of the Quantum Genetics Engine. */
@@ -48,7 +48,7 @@ function initLiveBrandIcon(){
 }
 
 function fresh(){return {
-  schemaVersion:15, appVersion:APP_VERSION,
+  schemaVersion:18, appVersion:APP_VERSION,
   tasks:[], notes:[], revision:[], events:[], minutes:0, good:0, bad:0,
   chapters:[], topics:[], questions:[], mistakes:[], flashcards:[], maps:[], resources:[],
   goals:[], examTracker:[], opportunities:[], worldKnowledge:[],
@@ -106,7 +106,7 @@ function normalise(raw){
   out.settings.sukoonPosition=Object.assign(base.settings.sukoonPosition,x.settings?.sukoonPosition||{});
   if(!out.chapters.length)out.chapters=seedChapters();
   upgradeSyllabusChapters(out);
-  out.schemaVersion=Math.max(Number(out.schemaVersion||0),15);
+  out.schemaVersion=Math.max(Number(out.schemaVersion||0),18);
   out.appVersion=APP_VERSION;
   return out;
 }
@@ -135,6 +135,46 @@ function label(x){return ({academic:"Academic",learning:"Learning Lab",revision:
 function dueRevisions(){return db.revision.filter(r=>r.status!=="done" && (!r.due||r.due<=Date.now())).sort((a,b)=>(a.due||0)-(b.due||0))}
 function openTasks(){return db.tasks.filter(t=>!t.done)}
 function pct(){const total=db.tasks.length;return total?Math.round(db.tasks.filter(t=>t.done).length/total*100):0}
+function syllabusStats(cls=syllabusClass){
+ const group=syllabusData?.subjects?.[String(cls)]||{};
+ let sections=0,topics=0,learned=0,strong=0,weak=0,revisionDue=0;
+ subjects.forEach(subject=>{
+  const units=group[subject]?.units||[]; sections+=units.length; topics+=units.reduce((n,u)=>n+(u[2]?.length||0),0);
+  const chapters=db.chapters.filter(c=>Number(c.classLevel)===Number(cls)&&c.subject===subject&&c.source==='UPMSP-2026-27');
+  learned+=chapters.filter(c=>['Learned','Strong','Mastered'].includes(c.status)).length;
+  strong+=chapters.filter(c=>['Strong','Mastered'].includes(c.status)).length;
+  weak+=chapters.filter(c=>c.status==='Weak').length;
+  revisionDue+=chapters.filter(c=>c.status==='Revision Due').length;
+ });
+ return {sections,topics,learned,strong,weak,revisionDue};
+}
+function topicContext(subject, chapter, topic){
+ const t=db.topics.find(x=>x.subject===subject && (!chapter||x.chapter===chapter||db.chapters.some(c=>c.id===x.chapterId&&c.name===chapter)) && (!topic||x.name===topic));
+ return t||null;
+}
+function nextUnstartedTopic(cls=syllabusClass){
+ const group=syllabusData?.subjects?.[String(cls)]||{};
+ for(const subject of subjects){
+  const units=group[subject]?.units||[];
+  for(let i=0;i<units.length;i++){
+   const chapter=db.chapters.find(c=>c.classLevel===cls&&c.subject===subject&&c.source==='UPMSP-2026-27'&&c.id===syllabusChapterId(cls,subject,i));
+   if(chapter && chapter.status==='Not Started'){
+    const topic=units[i]?.[2]?.[0]||chapter.name;
+    return {subject,chapter:chapter.name,topic,chapterId:chapter.id};
+   }
+  }
+ }
+ return null;
+}
+function createSmartMission(){
+ const a=nextAction();
+ if(a.kind==='revision'){const r=db.revision.find(x=>x.id===a.refId);if(r){current='revision';render();return;}}
+ if(a.kind==='weak'){quickRevision(a.refId);return;}
+ if(a.kind==='task'){startTask(a.refId);return;}
+ const t=a.topic||nextUnstartedTopic();
+ if(t){const title=`${t.subject} — ${t.topic}`;db.tasks.unshift({id:id(),title,subject:t.subject,chapter:t.chapter,topic:t.topic,topicId:t.topicId||null,classLevel:Number(syllabusClass),minutes:25,priority:'high',done:false,createdAt:new Date().toISOString(),source:'smart-mission'});ev('SMART_MISSION_CREATED',{title,subject:t.subject,chapter:t.chapter,topic:t.topic},false);save('smart-mission-created');}
+ else go('study');
+}
 function intelligenceSnapshot(){
  const open=openTasks();
  const due=dueRevisions();
@@ -146,50 +186,38 @@ function intelligenceSnapshot(){
  return {openCount:open.length,dueCount:due.length,weakCount:weak.length,plannedMinutes:planned,activeMinutes:Number(db.minutes||0),practiceNet:Number(db.good||0)-Number(db.bad||0),repeatedMistakes:repeated};
 }
 function nextAction(){
- const now=Date.now();
- const candidates=[];
- dueRevisions().slice(0,10).forEach(r=>candidates.push({score:100-(r.due&&r.due<now-86400000?0:10),title:`Revise ${r.title||r.topic}`,why:'Revision is due',action:`completeRevision('${r.id}')`}));
- db.chapters.filter(c=>c.status==='Weak').slice(0,8).forEach(c=>candidates.push({score:80,title:`Repair ${c.name}`,why:`${c.subject} is marked Weak`,action:`quickRevision('${c.id}')`}));
- openTasks().forEach(t=>{const p={high:70,normal:50,low:30}[t.priority]??50;candidates.push({score:p+(Number(t.minutes||0)<=45?8:0),title:t.title,why:`${t.priority||'normal'} priority study task`,action:`startTask('${t.id}')`})});
+ const now=Date.now(), candidates=[];
+ dueRevisions().slice(0,12).forEach(r=>candidates.push({score:120-(r.due&&r.due<now-86400000?0:8),kind:'revision',refId:r.id,title:`Revise ${r.title||r.topic}`,why:'Revision is due now'}));
+ db.chapters.filter(c=>c.status==='Weak').slice(0,10).forEach(c=>candidates.push({score:105,kind:'weak',refId:c.id,title:`Repair ${c.name}`,why:`${c.subject} is marked Weak`}));
  const repeated=intelligenceSnapshot().repeatedMistakes[0];
- if(repeated&&repeated.count>=2){const [subject,chapter]=repeated.key.split('|');candidates.push({score:90,title:`Repair repeated mistakes${chapter?` in ${chapter}`:''}`,why:`${repeated.count} mistakes are recorded in the same area`,action:chapter?`addRevision('${subject}','${chapter}','Repeated mistake pattern')`:`go('mistakes')`})}
+ if(repeated&&repeated.count>=2){const [subject,chapter]=repeated.key.split('|');candidates.push({score:110,kind:'weak',refId:(db.chapters.find(c=>c.subject===subject&&c.name===chapter)?.id||''),title:`Repair repeated mistakes${chapter?` in ${chapter}`:''}`,why:`${repeated.count} mistakes are recorded in the same area`});}
+ openTasks().forEach(t=>{const p={high:90,normal:65,low:40}[t.priority]??65;candidates.push({score:p+(Number(t.minutes||0)<=45?8:0),kind:'task',refId:t.id,title:t.title,why:`${t.priority||'normal'} priority study task`})});
+ const fresh=nextUnstartedTopic();
+ if(fresh)candidates.push({score:55,kind:'topic',topic:fresh,title:`Start ${fresh.subject} — ${fresh.topic}`,why:`Next unstarted topic in Class ${syllabusClass}`});
  candidates.sort((a,b)=>b.score-a.score);
- return candidates[0]||{title:"Create today's first study task",why:"Your active queue is clear",action:"go('study')"};
+ return candidates[0]||{kind:'empty',title:'Build your next study action',why:'Your active queue is clear'};
 }
 
 function home(){
- const action=nextAction(), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length, task=openTasks()[0];
- return `<section class="page home-page home-v4">
-  <section class="home-hero-real">
-   <img src="./assets/hero/home-hero-personal.png" alt="Personal ScienceHub study-space hero artwork">
-   <div class="home-hero-shade"></div>
-   <div class="home-hero-copy">
-    <div class="eyebrow">SCIENCEHUB • PERSONAL STUDY UNIVERSE</div>
-    <h1>Good evening, Ashu.Ayansh.</h1>
-    <p>Understand → Practice → Measure → Improve → Execute</p>
-    <div class="hero-pills"><span>Class 11 Core</span><span>Local-first</span><span>Personal use</span></div>
-   </div>
-  </section>
-  <div class="home-search search"><input value="${esc(searchTerm)}" placeholder="🌐 Search your ScienceHub..." oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>
-  ${searchTerm?searchResults():''}
-  <div class="mission-core">
-   <div class="mission-kicker"><span>🎯 TODAY'S MISSION</span><span class="mission-status">${task?'READY':'OPEN'}</span></div>
-   <h2>${esc(task?.title||"Create your first study mission")}</h2>
-   <p>${task?`${esc(task.priority||"normal")} • ${task.minutes||0} min`:'One clear target. One focused session. No noise.'}</p>
-   <button class="btn mission-btn" onclick="${task?`startTask('${task.id}')`:`go('study')`}">${task?'START MISSION':'CREATE MISSION'} <span>→</span></button>
-  </div>
-  <div class="next-action-card"><div><div class="eyebrow">⚡ NEXT BEST ACTION</div><h3>${esc(action.title)}</h3><p>${esc(action.why)}</p></div><button class="btn secondary" onclick="${action.action}">DO IT</button></div>
+ const action=nextAction(), stats=syllabusStats(syllabusClass), done=db.tasks.filter(t=>t.done).length, due=dueRevisions().length, task=openTasks()[0];
+ const actionButton=action.kind==='empty'?'go(\'study\')':action.kind==='revision'?`completeRevision('${action.refId}')`:action.kind==='weak'?`quickRevision('${action.refId}')`:action.kind==='task'?`startTask('${action.refId}')`:'createSmartMission()';
+ return `<section class="page home-page home-v5">
+  <section class="home-hero-real"><picture><source media="(min-width:900px)" srcset="./assets/hero/home-hero-personal-hd.jpg"><img src="./assets/hero/home-hero-personal.png" alt="Personal ScienceHub study-space hero artwork"></picture><div class="home-hero-shade"></div><div class="home-hero-copy"><div class="eyebrow">SCIENCEHUB • PRIVATE STUDY COCKPIT</div><h1>Good evening, Ashu.Ayansh.</h1><p>Understand → Practice → Measure → Improve → Execute</p><div class="hero-pills"><span>Class ${syllabusClass} Core</span><span>UPMSP 2026–27</span><span>Local-first</span></div></div></section>
+  <div class="home-search search"><input value="${esc(searchTerm)}" placeholder="🌐 Search subjects, topics, notes, questions…" oninput="search(this.value)"><button class="btn secondary" onclick="go('world')">Aui</button></div>${searchTerm?searchResults():''}
+  <section class="mission-core mission-v2"><div class="mission-kicker"><span>🎯 TODAY'S MISSION</span><span class="mission-status">${task?'READY':'AUTO'}</span></div><h2>${esc(task?.title||action.title)}</h2><p>${task?`${esc(task.subject||'General')} • ${esc(task.chapter||'')}${task.topic?' • '+esc(task.topic):''} • ${task.minutes||25} min`:`${esc(action.why)}`}</p><button class="btn mission-btn" onclick="${task?`startTask('${task.id}')`:'createSmartMission()'}">${task?'START MISSION':'BUILD MISSION'} <span>→</span></button></section>
+  <section class="next-action-card next-v2"><div><div class="eyebrow">⚡ NEXT BEST ACTION</div><h3>${esc(action.title)}</h3><p>${esc(action.why)}</p></div><button class="btn secondary" onclick="${actionButton}">DO IT</button></section>
   <div class="home-strip"><div><small>REVISION</small><b>${due} due</b></div><div><small>ACTIVE STUDY</small><b>${db.minutes} min</b></div><div><small>TASKS DONE</small><b>${done}</b></div><div><small>COMPLETION</small><b>${pct()}%</b></div></div>
-  <div class="home-section-heading"><div><div class="eyebrow">EXPLORE YOUR UNIVERSE</div><h2>Quick Access</h2></div><span>Only what you need often</span></div>
+  <section class="card section curriculum-pulse"><div class="row"><div><div class="eyebrow">📚 CURRICULUM PULSE</div><h2>Class ${syllabusClass} • ${stats.sections} sections • ${stats.topics} topics</h2></div><button class="btn secondary" onclick="go('subjects')">Open Subjects</button></div><div class="pulse-grid"><span><b>${stats.learned}</b><small>Sections learned</small></span><span><b>${stats.strong}</b><small>Strong / mastered</small></span><span><b>${stats.weak}</b><small>Weak areas</small></span><span><b>${stats.revisionDue}</b><small>Marked revision</small></span></div></section>
+  <div class="home-section-heading"><div><div class="eyebrow">EXPLORE YOUR UNIVERSE</div><h2>Quick Access</h2></div><span>Core systems only</span></div>
   <div class="quick-grid home-quick">${["study","academic","subjects","learning","practice","revision","progress","space"].map(x=>`<button class="quick" onclick="go('${x}')"><span class="quick-icon">${icon(x)}</span><b>${label(x)}</b></button>`).join("")}</div>
-  <div class="card section ai-center home-ai"><div class="eyebrow">AI COMMAND CENTER</div><h2>Choose your intelligence</h2><div class="ai-grid"><button onclick="aiRole('KuroVen')"><b>🖤 KuroVen</b><span>Action → execution</span></button><button onclick="aiRole('Hikaitage')"><b>🧭 Hikaitage</b><span>Learning + strategy</span></button><button onclick="aiRole('HukoVaige')"><b>🧠 HukoVaige</b><span>Patterns + reflection</span></button><button onclick="go('world')"><b>🌍 WORLD / Aui</b><span>Open when you call Aui</span></button></div></div>
-  <div class="home-quote"><span>✦</span><div><small>YOUR NEXT THOUGHT</small><b>${esc(sukoonQuote())}</b></div></div>
-  ${sukoonCompanionMarkup()}
-  <section class="card section home-intelligence-compact"><div class="eyebrow">🧠 PERSONAL INTELLIGENCE</div><h2>Your study patterns</h2><p class="muted">${openTasks().length||dueRevisions().length||db.mistakes.length ? 'ScienceHub is using your activity to shape the next useful step.' : 'Start a study session and ScienceHub will begin building your personal study map.'}</p><button class="btn secondary" onclick="go('progress')">Open Intelligence →</button></section>
-  <section class="card section home-future"><div class="eyebrow">🌌 YOUR HORIZON</div><h2>Future Possibilities</h2><p class="muted">Bioinformatics • research • scholarships • careers • competitions</p><button class="btn secondary" onclick="go('opportunities')">Explore →</button></section>
-  <section class="card section pcb-final"><div class="eyebrow">FINAL SECTION</div><h2>🎯 PCB Opportunities</h2><p class="muted">Scholarships • Research • Courses • Internships • Careers • Competitions • Exam Tracker</p><div class="actions"><button class="btn" onclick="go('opportunities')">Open PCB Opportunities</button><button class="btn secondary" onclick="go('exam')">Exam Tracker</button></div></section>
+  <div class="card section ai-center home-ai"><div class="eyebrow">AI COMMAND CENTER</div><h2>Choose your intelligence</h2><div class="ai-grid"><button onclick="aiRole('KuroVen')"><b>🖤 KuroVen</b><span>Execute the next action</span></button><button onclick="aiRole('Hikaitage')"><b>🧭 Hikaitage</b><span>Learn + solve strategically</span></button><button onclick="aiRole('HukoVaige')"><b>🧠 HukoVaige</b><span>Reflect + notice patterns</span></button><button onclick="go('world')"><b>🌍 WORLD / Aui</b><span>Open when needed</span></button></div></div>
+  <div class="home-quote"><span>✦</span><div><small>SUKOON.BRAIN</small><b>${esc(sukoonQuote())}</b></div></div>${sukoonCompanionMarkup()}
+  <section class="card section home-intelligence-compact"><div class="eyebrow">🧠 PERSONAL INTELLIGENCE</div><h2>Patterns → priorities → action</h2><p class="muted">ScienceHub uses your saved study activity, mistakes, revision state and goals to shape useful next actions. It does not claim to read your mind or diagnose you.</p><div class="actions"><button class="btn secondary" onclick="go('progress')">Open Intelligence</button><button class="btn secondary" onclick="go('time')">Open Time Data</button></div></section>
+  <section class="card section home-future"><div class="eyebrow">🌌 YOUR HORIZON</div><h2>Bioinformatics + future paths</h2><p class="muted">Research • courses • scholarships • careers • competitions</p><button class="btn secondary" onclick="go('opportunities')">Explore →</button></section>
+  <section class="card section pcb-final"><div class="eyebrow">FINAL SECTION</div><h2>🎯 PCB Opportunities</h2><p class="muted">Verified scholarships • research • courses • internships • careers • competitions • exam tracker</p><div class="actions"><button class="btn" onclick="go('opportunities')">Open Opportunities</button><button class="btn secondary" onclick="go('exam')">Exam Tracker</button></div></section>
  </section>`;
 }
+
 function sukoonCompanionMarkup(){
  const pos=db.settings?.sukoonPosition||{};
  const style=(Number.isFinite(pos.x)&&Number.isFinite(pos.y))?`left:${pos.x}px;top:${pos.y}px;right:auto;bottom:auto;`:'right:14px;bottom:84px;';
@@ -385,7 +413,7 @@ function openPYQHub(cls,s){const url=syllabusData?.meta?.pyq_hubs?.[cls===11?'cl
 function setStatus(cid,v){const c=db.chapters.find(x=>x.id===cid);if(!c)return;c.status=v;if(v==='Revision Due')addRevision(c.subject,c.name,'Status marked Revision Due');ev('CHAPTER_STATUS',{chapter:c.name,status:v},false);save('chapter-status')}
 function addTopic(cid){const c=db.chapters.find(x=>x.id===cid),t=prompt('Topic name?');if(!c||!t)return;db.topics.push({id:id(),chapterId:cid,subject:c.subject,chapter:c.name,name:t});save('topic-created')}
 
-function addRevision(subject,topic,reason){const exists=db.revision.find(r=>r.subject===subject&&r.title===topic&&r.status!=='done');if(exists)return exists.id;const rid=id();db.revision.push({id:rid,subject,title:topic,reason,status:'due',due:Date.now()});ev('REVISION_CREATED',{subject,topic,reason},false);return rid}
+function addRevision(subject,topic,reason,classLevel=syllabusClass){const exists=db.revision.find(r=>r.subject===subject&&r.title===topic&&r.status!=='done');if(exists)return exists.id;const ch=db.chapters.find(c=>Number(c.classLevel)===Number(classLevel)&&c.subject===subject&&c.name===topic);const tp=db.topics.find(t=>Number(t.classLevel)===Number(classLevel)&&t.subject===subject&&t.name===topic);const rid=id();db.revision.push({id:rid,subject,title:topic,reason,status:'due',due:Date.now(),classLevel:Number(classLevel),chapterId:ch?.id||null,topicId:tp?.id||null});ev('REVISION_CREATED',{subject,topic,reason,classLevel},false);return rid}
 function completeRevision(rid){const r=db.revision.find(x=>x.id===rid);if(!r)return;const days=Math.max(2,Math.min(14,Number(r.intervalDays||3)+1));r.status='done';r.completedAt=new Date().toISOString();r.intervalDays=days;const nextDue=Date.now()+days*86400000;db.revision.push({id:id(),subject:r.subject,title:r.title,reason:`Adaptive follow-up • ${days} day interval`,status:'due',due:nextDue,intervalDays:days});db.good+=2;ev('REVISION_COMPLETED',{id:rid,nextDue,intervalDays:days},false);save('revision-completed')}
 function quickRevision(cid){const c=db.chapters.find(x=>x.id===cid);if(c)addRevision(c.subject,c.name,'Manual revision');save('revision-added')}
 function revision(){const due=dueRevisions();return `<section class="page"><div class="eyebrow">REVISION ENGINE</div><h1>Recall → Repair → Revisit</h1><div class="grid3"><div class="card stat"><strong>${due.length}</strong><span>Due now</span></div><div class="card stat"><strong>${db.revision.length}</strong><span>Total review records</span></div><div class="card stat"><strong>${db.good}</strong><span>Positive actions</span></div></div><div class="list section">${due.map(r=>`<div class="item"><div class="row"><b>${esc(r.title)}</b><span class="tag">${esc(r.subject)}</span></div><div class="muted">${esc(r.reason||'Revision')} • due now</div><div class="actions"><button class="btn good" onclick="completeRevision('${r.id}')">Complete +2</button><button class="btn secondary" onclick="liveRecall('${r.id}')">🎙️ Live Recall</button></div></div>`).join('')||'<div class="card goodtxt">Nothing is due right now.</div>'}</div></section>`}
@@ -402,13 +430,18 @@ function maps(){return simpleList('Concept Maps','maps','🧩','Concept','Connec
 function resources(){return simpleList('Resource Hub','resources','🔗','Title','Link / note')}
 function addSimple(k){const a=prompt(k==='flashcards'?'Front':k==='maps'?'Concept':'Resource title');if(!a)return;const b=prompt(k==='flashcards'?'Back':k==='maps'?'Connections':'Link / note')||'';db[k].push({id:id(),a,b});save('learning-item-created')}
 
-function practice(){return `<section class="page"><div class="eyebrow">PRACTICE LAB</div><h1>Practice → Measure → Improve</h1><div class="grid3"><div class="card stat"><strong>${db.questions.length}</strong><span>Saved questions</span></div><div class="card stat"><strong>${db.good}</strong><span>Good / OK (+2)</span></div><div class="card stat"><strong>${db.bad}</strong><span>Bad (−1)</span></div></div><div class="actions section"><button class="btn" onclick="addQuestion()">+ Question</button><button class="btn secondary" onclick="go('mistakes')">Mistake Book</button></div><div class="list section">${db.questions.map(q=>`<div class="item"><div class="muted">${esc(q.subject)} ${q.chapter?'• '+esc(q.chapter):''}</div><b>${esc(q.text)}</b><div class="actions"><button class="btn good" onclick="answer('${q.id}','good')">Correct +3</button><button class="btn secondary" onclick="answer('${q.id}','ok')">OK +2</button><button class="btn warn" onclick="answer('${q.id}','bad')">Bad −1</button></div></div>`).join('')||'<div class="card">Add a question to start your local practice bank.</div>'}</div></section>`}
+function practice(){return `<section class="page"><div class="eyebrow">PRACTICE LAB</div><h1>Practice → Measure → Improve</h1><div class="grid3"><div class="card stat"><strong>${db.questions.length}</strong><span>Saved questions</span></div><div class="card stat"><strong>${db.good}</strong><span>Positive practice points</span></div><div class="card stat"><strong>${db.bad}</strong><span>Bad (−1)</span></div></div><div class="actions section"><button class="btn" onclick="addQuestion()">+ Question</button><button class="btn secondary" onclick="go('mistakes')">Mistake Book</button></div><div class="list section">${db.questions.map(q=>`<div class="item"><div class="muted">${esc(q.subject)} ${q.chapter?'• '+esc(q.chapter):''}</div><b>${esc(q.text)}</b><div class="actions"><button class="btn good" onclick="answer('${q.id}','good')">Correct +3</button><button class="btn secondary" onclick="answer('${q.id}','ok')">OK +2</button><button class="btn warn" onclick="answer('${q.id}','bad')">Bad −1</button></div></div>`).join('')||'<div class="card">Add a question to start your local practice bank.</div>'}</div></section>`}
 function addQuestion(){const text=prompt('Question?');if(!text)return;const s=prompt('Subject? (Biology/Physics/Chemistry/English/Hindi)','Biology')||'General';const c=prompt('Chapter?')||'';db.questions.push({id:id(),text,subject:s,chapter:c,createdAt:new Date().toISOString()});save('question-created')}
-function answer(qid,result){const q=db.questions.find(x=>x.id===qid);if(!q)return;if(result==='good'){db.good+=3;ev('QUESTION_GOOD',{id:qid,points:3},false)}else if(result==='ok'){db.good+=2;ev('QUESTION_OK',{id:qid,points:2},false)}else{db.bad+=1;db.mistakes.unshift({id:id(),question:q.text,subject:q.subject,chapter:q.chapter,at:Date.now()});if(q.chapter)addRevision(q.subject,q.chapter,'Wrong answer → revision trigger');ev('QUESTION_BAD',{id:qid,points:-1},false)}save(`question-${result}`)}
+function answer(qid,result){const q=db.questions.find(x=>x.id===qid);if(!q)return;const ch=db.chapters.find(c=>c.subject===q.subject&&c.name===q.chapter);if(result==='good'){db.good+=3;if(ch&&ch.status!=='Mastered')ch.status=ch.status==='Strong'?'Mastered':'Strong';ev('QUESTION_GOOD',{id:qid,points:3,subject:q.subject,chapter:q.chapter},false)}else if(result==='ok'){db.good+=2;if(ch&&ch.status==='Not Started')ch.status='Learning';ev('QUESTION_OK',{id:qid,points:2,subject:q.subject,chapter:q.chapter},false)}else{db.bad+=1;db.mistakes.unshift({id:id(),question:q.text,subject:q.subject,chapter:q.chapter,topic:q.topic||'',at:Date.now()});if(ch){ch.status='Weak';addRevision(q.subject,q.chapter,'Wrong answer → revision trigger',q.classLevel||syllabusClass)}ev('QUESTION_BAD',{id:qid,points:-1,subject:q.subject,chapter:q.chapter},false)}save(`question-${result}`)}
 function mistakes(){return `<section class="page"><div class="eyebrow">MISTAKE BOOK</div><h1>Turn mistakes into revision</h1><div class="list section">${db.mistakes.map(m=>`<div class="item"><b>${esc(m.question)}</b><div class="muted">${esc(m.subject)} • ${esc(m.chapter||'')}</div><div class="actions"><button class="btn secondary" onclick="mistakeRev('${m.id}')">Revise</button></div></div>`).join('')||'<div class="card goodtxt">No recorded mistakes yet.</div>'}</div></section>`}
 function mistakeRev(mid){const m=db.mistakes.find(x=>x.id===mid);if(m){addRevision(m.subject,m.chapter||m.question,'Mistake Book');save('mistake-revision')}}
 
-function progress(){const score=db.good-db.bad;return `<section class="page"><div class="eyebrow">PROGRESS</div><h1>Measure what is improving</h1><div class="grid3"><div class="card stat"><strong>${pct()}%</strong><span>Tasks complete</span></div><div class="card stat"><strong>${db.minutes}</strong><span>Active study min</span></div><div class="card stat"><strong>${score}</strong><span>Practice net</span></div></div><div class="list section">${subjects.map(s=>{const c=db.chapters.filter(x=>x.subject===s),strong=c.filter(x=>['Strong','Mastered'].includes(x.status)).length,weak=c.filter(x=>x.status==='Weak').length;return `<div class="card"><div class="row"><b>${s}</b><span class="muted">${strong} strong • ${weak} weak</span></div><div class="progress"><i style="width:${c.length?strong/c.length*100:0}%"></i></div></div>`}).join('')}</div></section>`}
+function progress(){
+ const cls=Number(syllabusClass)||11, st=syllabusStats(cls), score=db.good-db.bad;
+ const rows=subjects.map(s=>{const c=db.chapters.filter(x=>Number(x.classLevel)===cls&&x.subject===s&&x.source==='UPMSP-2026-27');const learned=c.filter(x=>['Learned','Strong','Mastered'].includes(x.status)).length;const strong=c.filter(x=>['Strong','Mastered'].includes(x.status)).length;const weak=c.filter(x=>x.status==='Weak').length;return `<div class="card progress-subject"><div class="row"><b>${s}</b><span class="muted">${learned}/${c.length} sections learned</span></div><div class="progress"><i style="width:${c.length?learned/c.length*100:0}%"></i></div><div class="muted">${strong} strong/mastered • ${weak} weak</div></div>`}).join('');
+ return `<section class="page"><div class="eyebrow">PROGRESS & ANALYTICS</div><div class="row"><div><h1>Measure what is improving</h1><p class="muted">Coverage and performance are separate signals.</p></div><div class="segmented"><button class="${cls===11?'active':''}" onclick="setSyllabusClass(11);go('progress')">Class 11</button><button class="${cls===12?'active':''}" onclick="setSyllabusClass(12);go('progress')">Class 12</button></div></div><div class="grid3"><div class="card stat"><strong>${st.learned}/${st.sections}</strong><span>Syllabus sections learned</span></div><div class="card stat"><strong>${st.strong}</strong><span>Strong / mastered</span></div><div class="card stat"><strong>${score}</strong><span>Practice net</span></div></div><div class="notice section">Weak areas: <b>${st.weak}</b> • Revision-due sections: <b>${st.revisionDue}</b> • Active study: <b>${db.minutes} min</b></div><div class="list section">${rows}</div></section>`;
+}
+
 function academic(){return `<section class="page"><div class="eyebrow">ACADEMIC</div><h1>Class 11 command view</h1><div class="grid">${subjects.map(s=>`<button class="card" onclick="subject('${s}')">📚 <b>${s}</b><div class="muted">${db.chapters.filter(c=>c.subject===s).length} chapters</div></button>`).join('')}</div><div class="card section"><b>Class integration</b><p class="muted">Foundation → Connection → optional depth. Class 12 can broaden overlapping Class 11 concepts.</p></div></section>`}
 function school(){return `<section class="page"><div class="eyebrow">SCHOOL</div><h1>School Workspace</h1><div class="grid"><button class="card" onclick="addSchool('schedule')">🗓️ <b>Schedule</b><div class="muted">Add a commitment</div></button><button class="card" onclick="addSchool('teachers')">👨‍🏫 <b>Teachers</b><div class="muted">Add teacher notes</div></button><button class="card" onclick="addSchool('homework')">📚 <b>Homework</b><div class="muted">Convert homework into tasks</div></button><button class="card" onclick="addSchool('practicals')">🧪 <b>Practicals</b><div class="muted">Track practical work</div></button></div><div class="list section">${Object.entries(db.school).flatMap(([k,arr])=>arr.slice(-4).map(x=>`<div class="item"><b>${esc(k)}</b> • ${esc(x.text||x.title||'')}</div>`)).join('')||'<div class="card">No school records yet.</div>'}</div></section>`}
 function addSchool(k){const v=prompt(`Add ${k} record?`);if(!v)return;db.school[k].push({id:id(),text:v,createdAt:new Date().toISOString()});save('school-record-created')}
@@ -421,8 +454,9 @@ function setExamStatus(eid,status){const e=db.examTracker.find(x=>x.id===eid);if
 
 function time(){return `<section class="page"><div class="eyebrow">TIME TRACKING</div><h1>Planned vs active study</h1><div class="grid3"><div class="card stat"><strong>${db.minutes}</strong><span>Active study min</span></div><div class="card stat"><strong>${db.tasks.reduce((a,x)=>a+(Number(x.minutes)||0),0)}</strong><span>Planned task min</span></div><div class="card stat"><strong>${db.events.length}</strong><span>Activity events</span></div></div><div class="notice section">Session Duration ≠ Active Study Duration. Focus sessions and completed task minutes are recorded locally.</div><div class="card section"><b>Recent activity</b><div class="list section">${db.events.slice(-8).reverse().map(e=>`<div class="item"><b>${esc(e.type)}</b><div class="muted">${new Date(e.at).toLocaleString()}</div></div>`).join('')||'<div class="muted">No activity yet.</div>'}</div></div></section>`}
 
-function step68Markup(){const action=nextAction();return `<section class="sh68-panel"><div class="sh68-head"><div><span class="sh68-kicker">STEP 6–8 • INTEGRATED</span><h2>Intelligence & Future Center</h2><p>Priority → Track → Verify → Learn</p></div><button onclick="render()">Refresh</button></div><div class="sh68-grid"><article><b>Next Best Action</b><div>${esc(action.title)}</div></article><article><b>Open Tasks</b><div>${openTasks().length}</div></article><article><b>Due Revision</b><div>${dueRevisions().length}</div></article><article><b>Goals</b><div>${db.goals.filter(g=>!g.done).length}</div></article><article><b>Exams</b><div>${db.examTracker.length}</div></article><article><b>PCB Saves</b><div>${db.opportunities.length}</div></article><article><b>World Notes</b><div>${db.worldKnowledge.length}</div></article></div><div class="sh68-actions"><button onclick="addGoal()">+ Goal</button><button onclick="addExam()">+ Exam</button><button onclick="addOpportunity('PCB')">+ PCB Opportunity</button><button onclick="addWorldNote()">+ World Note</button><button onclick="go('world')">🌍 World</button><button onclick="go('exam')">🧭 Exam Tracker</button></div></section>`}
+function step68Markup(){const action=nextAction(),st=syllabusStats(syllabusClass);return `<section class="sh68-panel refined-intelligence"><div class="sh68-head"><div><span class="sh68-kicker">SCIENCEHUB INTELLIGENCE</span><h2>Priority → Track → Verify → Learn</h2><p>Your dashboard now reads the same study data used by Subjects, Practice, Revision and Progress.</p></div><button onclick="render()">Refresh</button></div><div class="sh68-grid"><article><b>Next Best Action</b><div>${esc(action.title)}</div><small>${esc(action.why)}</small></article><article><b>Syllabus</b><div>${st.learned}/${st.sections}</div><small>sections learned</small></article><article><b>Topics</b><div>${st.topics}</div><small>Class ${syllabusClass}</small></article><article><b>Due Revision</b><div>${dueRevisions().length}</div><small>needs attention</small></article><article><b>Weak Areas</b><div>${st.weak}</div><small>pattern signal</small></article><article><b>Practice Net</b><div>${db.good-db.bad}</div><small>points</small></article><article><b>Active Study</b><div>${db.minutes} min</div><small>recorded locally</small></article></div><div class="sh68-actions"><button onclick="createSmartMission()">🎯 Smart Mission</button><button onclick="go('subjects')">📚 Subjects</button><button onclick="go('practice')">📝 Practice</button><button onclick="go('revision')">🔁 Revision</button><button onclick="go('progress')">📈 Progress</button><button onclick="go('time')">⏱️ Time</button></div></section>`}
 function addGoal(){const title=prompt('Goal name?');if(!title)return;db.goals.unshift({id:id(),title,done:false,createdAt:new Date().toISOString()});save('goal-created')}
+{const title=prompt('Goal name?');if(!title)return;db.goals.unshift({id:id(),title,done:false,createdAt:new Date().toISOString()});save('goal-created')}
 function addWorldNote(){const title=prompt('World knowledge note?');if(!title)return;const summary=prompt('Short summary?')||'';const source=prompt('Source? (optional)')||'';db.worldKnowledge.unshift({id:id(),title,summary,source,savedAt:new Date().toISOString()});save('world-note-created')}
 function world(){return `<section class="page"><div class="row"><div><div class="eyebrow">WORLD KNOWLEDGE</div><h1>KnownWorld</h1></div><button class="btn" onclick="addWorldNote()">+ Note</button></div><div class="notice">Use “Aui” from Home when you want this space. Fresh world information requires an internet source; this local build only stores your notes.</div><div class="list section">${db.worldKnowledge.map(x=>`<div class="item"><b>${esc(x.title)}</b><p>${esc(x.summary)}</p><div class="muted">${esc(x.source||'No source saved')}</div></div>`).join('')||'<div class="card">No world notes saved.</div>'}</div></section>`}
 
@@ -431,7 +465,7 @@ function addStep9Priority(){const v=prompt('Priority to remember?');if(!v)return
 function addStep9Checkin(){const v=prompt('Quick study check-in?');if(!v)return;db.step9.checkins.unshift({id:id(),text:v,at:new Date().toISOString()});save('step9-checkin')}
 function togglePriority(pid){const p=db.step9.priorities.find(x=>x.id===pid);if(p)p.done=!p.done;save('step9-priority-toggle')}
 function addStep9Backup(){db.step9.lastBackup=new Date().toISOString();exportData(true);save('step9-backup')}
-function step9Markup(){const s=step9State();const open=s.priorities.filter(x=>!x.done);return `<section class="sh-step9-card"><div class="sh-step9-head"><span class="sh-badge">STEP 9</span><h2>Personal Intelligence & Recovery</h2></div><p class="muted">Protect progress, capture priorities, and keep a recoverable local history.</p><div class="sh-step9-grid"><button onclick="addStep9Priority()">➕ Priority</button><button onclick="addStep9Checkin()">🧠 Check-in</button><button onclick="addStep9Backup()">🛡️ Backup Checkpoint</button></div><div class="sh-step9-stats"><span>Open priorities: <b>${open.length}</b></span><span>Check-ins: <b>${s.checkins.length}</b></span><span>Last checkpoint: <b>${s.lastBackup?new Date(s.lastBackup).toLocaleString():'Not recorded'}</b></span></div>${open.slice(0,3).map(p=>`<div class="item section"><label><input type="checkbox" ${p.done?'checked':''} onchange="togglePriority('${p.id}')"> ${esc(p.text)}</label></div>`).join('')}</section>`}
+function step9Markup(){const s=step9State();const open=s.priorities.filter(x=>!x.done);return `<section class="sh-step9-card"><div class="sh-step9-head"><span class="sh-badge">PERSONAL INTELLIGENCE</span><h2>Recovery & Reflection</h2></div><p class="muted">Protect progress, capture priorities, and keep a recoverable local history.</p><div class="sh-step9-grid"><button onclick="addStep9Priority()">➕ Priority</button><button onclick="addStep9Checkin()">🧠 Check-in</button><button onclick="addStep9Backup()">🛡️ Backup Checkpoint</button></div><div class="sh-step9-stats"><span>Open priorities: <b>${open.length}</b></span><span>Check-ins: <b>${s.checkins.length}</b></span><span>Last checkpoint: <b>${s.lastBackup?new Date(s.lastBackup).toLocaleString():'Not recorded'}</b></span></div>${open.slice(0,3).map(p=>`<div class="item section"><label><input type="checkbox" ${p.done?'checked':''} onchange="togglePriority('${p.id}')"> ${esc(p.text)}</label></div>`).join('')}</section>`}
 
 function space(){return `<section class="page"><div class="eyebrow">MY SPACE</div><h1>Your study memory</h1><div class="grid">${[['Bookmarks','bookmarks'],['Saved Questions','questions'],['My Notes','notes'],['Flashcards','flashcards'],['Concept Maps','maps'],['Saved Resources','resources'],['Goals','goals'],['Ideas','ideas'],['Research / Project Space','projects'],['Bioinformatics Space','bioinformatics'],['Archive','recovery'],['Analytics','events']].map(([name,key])=>`<button class="card" onclick="${['bookmarks','ideas','projects','bioinformatics'].includes(key)?`addSpace('${key}')`:`go('${key==='questions'?'practice':key==='notes'?'notes':key==='flashcards'?'flash':key==='maps'?'maps':key==='resources'?'resources':key==='goals'?'progress':key==='events'?'time':key==='recovery'?'recovery':'space'}')`}"><b>${name}</b><div class="muted">${Array.isArray(db[key])?db[key].length:0} saved</div></button>`).join('')}</div><div class="card section"><b>Recovery Box</b><p class="muted">Archived items stay recoverable until you explicitly delete them.</p><button class="btn secondary" onclick="go('recovery')">Open Recovery Box</button></div></section>`}
 function addSpace(k){const labels={bookmarks:'Bookmark',ideas:'Idea',projects:'Research / Project',bioinformatics:'Bioinformatics note'};const v=prompt(`${labels[k]}?`);if(!v)return;db.space[k].unshift({id:id(),text:v,createdAt:new Date().toISOString()});save('space-item-created')}
@@ -502,7 +536,7 @@ function render(){
  setTimeout(initSukoonDrag,0);
 }
 
-if('serviceWorker' in navigator){window.addEventListener('load',async()=>{try{const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){if(r.scope.includes(location.origin))await r.unregister();}if(window.caches){const keys=await caches.keys();await Promise.all(keys.filter(k=>/^sciencehub-/i.test(k)).map(k=>caches.delete(k)));}const r=await navigator.serviceWorker.register('./sw.js?v=89',{updateViaCache:'none'});await r.update();}catch(e){}})}
+if('serviceWorker' in navigator){window.addEventListener('load',async()=>{try{const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){if(r.scope.includes(location.origin))await r.unregister();}if(window.caches){const keys=await caches.keys();await Promise.all(keys.filter(k=>/^sciencehub-/i.test(k)).map(k=>caches.delete(k)));}const r=await navigator.serviceWorker.register('./sw.js?v=92',{updateViaCache:'none'});await r.update();}catch(e){}})}
 window.addEventListener('beforeunload',()=>{if(focusTimer.interval)clearInterval(focusTimer.interval)});
 async function loadSyllabus(){
   syllabusData=window.SCIENCEHUB_SYLLABUS||null;
