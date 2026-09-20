@@ -1,27 +1,28 @@
-# ScienceHub V90 — Core Integrated
+# ScienceHub V84 — Final Functional Consolidation
 
-Personal-use Study OS for Ashu.Ayansh.
+Personal Study OS for Ashu.Ayansh.
 
-**Core loop:** Understand → Practice → Measure → Improve → Execute
+## What this build fixes
+- One active runtime (`js/app.js`); no legacy `app-step9.js` loading.
+- Home Hero is a real visible image using the supplied studying-space artwork.
+- Assets are organized under `assets/brand`, `assets/hero`, and `assets/companion`.
+- UPMSP 2026–27 syllabus and PYQ 2020–2026 registry are retained.
+- An embedded syllabus fallback makes the app usable even when browser `fetch()` of local JSON is blocked.
+- Existing local study data is preserved; missing Class 11 syllabus tracking sections are added during migration.
+- Subjects shows actual syllabus-section counts and tracked progress.
+- Sukoon.Brain has persistent local conversation plus optional custom AI endpoint support.
+- PWA/offline cache is V84-specific.
 
-**V90 focus:** connect the syllabus topic identity to learning, practice, mistakes, revision, progress and Home intelligence instead of treating them as separate mini-apps.
+## Run
+### GitHub Pages
+Upload the contents of this folder to the root of the `Sciencehub` repository. Keep folders intact.
 
-## Deploy
-Upload the **contents of this folder** to the root of a GitHub Pages repository. `index.html` must be at repository root.
-
-## Main systems
-- Class 11 + Class 12 UPMSP 2026–27 syllabus
-- Class → Subject → Section → Topic identity
-- Learning Lab
-- Practice + scoring: Bad −1, OK +2, Good +3
-- Topic-linked Mistake Book and Revision
-- Topic mastery Progress
-- Study planner + Focus
-- Sukoon.Brain local-first companion
-- KuroVen / Hikaitage / HukoVaige role layer
-- World Knowledge / Aui
-- My Space + Recovery
-- PWA/offline local data
+### Direct Android file opening
+Open `index.html` in a browser. Core UI and syllabus fallback work without requiring the JSON fetch. Service-worker/PWA features require a web origin such as GitHub Pages.
 
 ## Important
-The local build does not pretend to be a cloud ChatGPT service. Generative AI requires a compatible endpoint configured by the user. Current opportunities and PYQs must be verified before being treated as factual/current.
+This package does not contain a hidden ChatGPT model or secret API key. Sukoon's generative mode requires a compatible endpoint configured in Settings.
+
+
+## V89 deep fix
+Runtime/cache version is V89. Subjects is generated directly from the UPMSP dataset and stale same-origin ScienceHub service-worker caches are cleared before the V89 worker is registered.

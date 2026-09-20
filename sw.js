@@ -1,7 +1,7 @@
-const CACHE="sciencehub-v90-deep-fixed";
+const CACHE="sciencehub-v89-deep-fixed";
 const ASSETS=[
  "./","./index.html","./css/style.css","./js/app.js","./data/syllabus-fallback.js","./manifest.json",
- "./assets/brand/sciencehub-icon.svg","./assets/brand/sciencehub-icon-192.png","./assets/brand/sciencehub-icon-512.png","./assets/brand/sciencehub-icon-master.png",
+ "./assets/brand/sciencehub-icon.svg","./assets/brand/sciencehub-icon-192.png","./assets/brand/sciencehub-icon-512.png",
  "./assets/hero/home-hero-personal.png","./assets/companion/sukoon-brain-figure.png",
  "./data/upmsp_syllabus_2026_27.json","./data/pyq_registry_2020_2026.json","./icon-lab.html"
 ];
