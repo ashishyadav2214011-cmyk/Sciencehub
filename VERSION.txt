@@ -1,3 +1,2 @@
-ScienceHub V93 — Master Integrated
-Personal Study OS for Ashu.Ayansh
-Build: SCIENCEHUB-V93-MASTER-INTEGRATED
+ScienceHub V93.1 — Master Integrated Deploy
+Build: SCIENCEHUB-V93.1-MASTER-INTEGRATED
