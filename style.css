@@ -88,3 +88,10 @@ body{min-height:100vh;padding-bottom:86px}.search-hit{display:flex;gap:10px;alig
 
 /* V89 deep Subjects fix */
 .subjects-v89-title{align-items:center}.build-badge{font-size:9px;letter-spacing:.8px;color:#61e7ff;border:1px solid rgba(97,231,255,.2);border-radius:999px;padding:5px 8px;white-space:nowrap}.class-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;border:1px solid rgba(97,231,255,.18);border-radius:18px;background:linear-gradient(135deg,rgba(97,231,255,.07),rgba(255,0,127,.035))}.class-banner h2{margin:3px 0}.subject-grid-v89{gap:14px}.subject-card-v89{min-height:205px}.subject-big-number{font-size:28px;font-weight:800;margin:14px 0 6px;color:#eefaff}.subject-big-number small{font-size:11px;font-weight:500;color:var(--muted)}.progress-track{height:7px;border-radius:99px;background:rgba(0,0,0,.3);overflow:hidden;border:1px solid rgba(255,255,255,.04)}.progress-track span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#00f2fe,#ff007f)}.completion-line{margin:7px 0 12px;font-size:11px}@media(max-width:620px){.subjects-v89-title{display:block}.build-badge{display:inline-block;margin-top:6px}.class-banner{display:block}.class-banner .btn{margin-top:10px;width:100%}.subject-card-v89{min-height:0}}
+
+/* V90 Sukoon.Brain AI Bot */
+.sukoon-modebar button.active{border-color:rgba(120,220,255,.65);background:linear-gradient(135deg,rgba(30,100,150,.55),rgba(92,50,150,.45));box-shadow:0 0 14px rgba(80,180,255,.16)}
+.sukoon-msg.bot{display:flex;align-items:flex-start;gap:8px}
+.sukoon-msg-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:9px;object-fit:cover;border:1px solid rgba(120,210,255,.42);box-shadow:0 0 12px rgba(70,160,255,.18)}
+.sukoon-foot-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sukoon-foot-actions .btn{white-space:nowrap}

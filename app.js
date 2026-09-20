@@ -56,7 +56,7 @@ function fresh(){return {
   space:{bookmarks:[],ideas:[],projects:[],bioinformatics:[]},
   recovery:[],
   step9:{checkins:[],priorities:[],reviews:[],lastBackup:null},
-  settings:{quiet:true,cameraMode:"off",sukoonPosition:{x:null,y:null},sukoonContext:true,aiProvider:"local",aiEndpoint:"",aiModel:""}
+  settings:{quiet:true,cameraMode:"off",sukoonPosition:{x:null,y:null},sukoonContext:true,aiProvider:"local",aiEndpoint:"",aiModel:"",sukoonBotEnabled:true,sukoonBotName:"Sukoon.Brain",sukoonDefaultMode:"Listen"}
 }}
 
 function seedChapters(){return [
@@ -100,6 +100,9 @@ function normalise(raw){
   out.step9.backupCount=Number(out.step9.backupCount||0);
   for(const k of ["checkins","priorities","reviews"]){if(!Array.isArray(out.step9[k]))out.step9[k]=[]}
   out.settings=Object.assign(base.settings,x.settings||{});
+  out.settings.sukoonBotName=String(out.settings.sukoonBotName||"Sukoon.Brain");
+  out.settings.sukoonDefaultMode=out.settings.sukoonDefaultMode||"Listen";
+  out.settings.sukoonBotEnabled=out.settings.sukoonBotEnabled!==false;
   out.settings.sukoonPosition=Object.assign(base.settings.sukoonPosition,x.settings?.sukoonPosition||{});
   if(!out.chapters.length)out.chapters=seedChapters();
   upgradeSyllabusChapters(out);
@@ -251,20 +254,48 @@ function sukoonLocalReply(mode,text){
  if(recent.length>1 && mode==='Analyze' && !reply.includes('repeating')) reply += ` You’ve also mentioned ${recent.length} recent points here, so we can compare them rather than judging one moment in isolation.`;
  return reply;
 }
+function sukoonBotName(){return esc(db.settings?.sukoonBotName||'Sukoon.Brain')}
 function openSukoon(){
- const m=$("modal"), chat=sukoonStore();
- m.innerHTML=`<div class="modalbox sukoon-chat-modal"><div class="row"><div><div class="eyebrow">SCIENCEHUB COMPANION</div><h2>🤍 Sukoon.Brain</h2><p class="muted">Companion + understanding layer • local-first</p></div><button class="iconbtn" onclick="closeModal()" aria-label="Close Sukoon.Brain">✕</button></div>
- <div class="sukoon-chat-head"><img src="./assets/companion/sukoon-brain-figure.png" alt="Sukoon.Brain"><div><b>I'm listening.</b><small>Talk naturally. I respond from what you choose to share.</small></div></div>
- <div id="sukoonMessages" class="sukoon-messages">${chat.length?chat.map(sukoonMessageHTML).join(''):`<div class="sukoon-msg bot"><b>Sukoon.Brain</b><div>Hey, Ashu 🤍. You can start anywhere. Tell me what you want to talk through.</div></div>`}</div>
- <div class="sukoon-modebar">${['Listen','Reflect','Analyze','Act'].map(x=>`<button onclick="setSukoonMode('${x}')">${x}</button>`).join('')}</div>
- <div class="sukoon-composer"><textarea id="sukoonInput" rows="2" placeholder="Talk to Sukoon.Brain…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendSukoon()}"></textarea><button class="btn" onclick="sendSukoon()">Send</button></div>
- <div class="sukoon-foot"><span id="sukoonMode">Mode: Listen</span><button class="btn secondary" onclick="clearSukoonChat()">Clear chat</button></div>
- <div class="notice section">Privacy: chat is stored locally on this device. Sukoon.Brain does not read minds or diagnose you.</div></div>`;
+ if(db.settings?.sukoonBotEnabled===false){alert('Sukoon.Brain AI Bot is disabled in Settings.');return;}
+ const m=$("modal"), chat=sukoonStore(), mode=db.settings?.sukoonDefaultMode||'Listen';
+ m.innerHTML=`<div class="modalbox sukoon-chat-modal"><div class="row"><div><div class="eyebrow">SCIENCEHUB AI BOT</div><h2>🤍 ${sukoonBotName()}</h2><p class="muted">Personal companion + understanding layer • local-first</p></div><button class="iconbtn" onclick="closeModal()" aria-label="Close Sukoon.Brain">✕</button></div>
+ <div class="sukoon-chat-head"><img src="./assets/companion/sukoon-brain-icon.png" alt="Sukoon.Brain AI bot"><div><b>${sukoonBotName()} is listening.</b><small>Chat naturally. The bot responds only to what you share and permitted ScienceHub context.</small></div></div>
+ <div id="sukoonMessages" class="sukoon-messages">${chat.length?chat.map(sukoonMessageHTML).join(''):`<div class="sukoon-msg bot"><img class="sukoon-msg-avatar" src="./assets/companion/sukoon-brain-icon.png" alt=""><div><b>${sukoonBotName()}</b><div>Hey, Ashu 🤍. You can start anywhere—study, planning, confusion, or reflection.</div></div></div>`}</div>
+ <div class="sukoon-modebar">${['Listen','Reflect','Analyze','Act'].map(x=>`<button class="${x===mode?'active':''}" onclick="setSukoonMode('${x}')">${x}</button>`).join('')}</div>
+ <div class="sukoon-composer"><textarea id="sukoonInput" rows="2" placeholder="Talk to ${sukoonBotName()}…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendSukoon()}"></textarea><button class="btn" onclick="sendSukoon()">Send</button></div>
+ <div class="sukoon-foot"><span id="sukoonMode">Mode: ${esc(mode)}</span><span class="sukoon-foot-actions"><button class="btn secondary" onclick="openSukoonBotSettings()">⚙ Bot settings</button><button class="btn secondary" onclick="clearSukoonChat()">Clear chat</button></span></div>
+ <div class="notice section">Privacy: chat history stays on this device unless you deliberately configure an external AI endpoint. ${sukoonBotName()} does not read minds or diagnose you.</div></div>`;
  m.style.display='block';
  setTimeout(()=>{const x=$("sukoonInput");if(x)x.focus();const box=$("sukoonMessages");if(box)box.scrollTop=box.scrollHeight},30);
 }
-function sukoonMessageHTML(x){return `<div class="sukoon-msg ${x.role==='user'?'user':'bot'}"><b>${x.role==='user'?'You':'Sukoon.Brain'}</b><div>${esc(x.text).replace(/\n/g,'<br>')}</div></div>`}
-function setSukoonMode(mode){const el=$("sukoonMode");if(el)el.textContent='Mode: '+mode;const input=$("sukoonInput");if(input)input.placeholder=`${mode}: write anything…`;}
+function sukoonMessageHTML(x){
+ const bot=x.role!=='user';
+ return bot?`<div class="sukoon-msg bot"><img class="sukoon-msg-avatar" src="./assets/companion/sukoon-brain-icon.png" alt=""><div><b>${sukoonBotName()}</b><div>${esc(x.text).replace(/\n/g,'<br>')}</div></div></div>`:`<div class="sukoon-msg user"><div><b>You</b><div>${esc(x.text).replace(/\n/g,'<br>')}</div></div></div>`;
+}
+function setSukoonMode(mode){db.settings.sukoonDefaultMode=mode;localStorage.setItem(KEY,JSON.stringify(db));const el=$("sukoonMode");if(el)el.textContent='Mode: '+mode;const input=$("sukoonInput");if(input)input.placeholder=`${mode}: write anything…`;document.querySelectorAll('.sukoon-modebar button').forEach(b=>b.classList.toggle('active',b.textContent===mode));}
+function openSukoonBotSettings(){
+ const m=$("modal");
+ m.innerHTML=`<div class="modalbox"><div class="row"><div><div class="eyebrow">SUKOON.BRAIN</div><h2>AI Bot Settings</h2></div><button class="iconbtn" onclick="openSukoon()">✕</button></div>
+ <label class="setting"><input id="sbEnabled" type="checkbox" ${db.settings.sukoonBotEnabled!==false?'checked':''}> Enable Sukoon.Brain AI Bot</label>
+ <label class="setting"><span>Bot name</span><input id="sbName" value="${esc(db.settings.sukoonBotName||'Sukoon.Brain')}" maxlength="40"></label>
+ <label class="setting"><span>Default mode</span><select id="sbMode"><option ${db.settings.sukoonDefaultMode==='Listen'?'selected':''}>Listen</option><option ${db.settings.sukoonDefaultMode==='Reflect'?'selected':''}>Reflect</option><option ${db.settings.sukoonDefaultMode==='Analyze'?'selected':''}>Analyze</option><option ${db.settings.sukoonDefaultMode==='Act'?'selected':''}>Act</option></select></label>
+ <label class="setting"><input id="sbContext" type="checkbox" ${db.settings.sukoonContext!==false?'checked':''}> Allow permitted ScienceHub context</label>
+ <div class="card section"><div class="eyebrow">AI CONNECTION</div><label class="setting"><span>Provider</span><select id="sbProvider"><option value="local" ${db.settings.aiProvider==='local'?'selected':''}>Local / Offline</option><option value="endpoint" ${db.settings.aiProvider==='endpoint'?'selected':''}>Custom AI endpoint</option></select></label><label class="setting"><span>AI endpoint</span><input id="sbEndpoint" value="${esc(db.settings.aiEndpoint||'')}" placeholder="https://your-server.example/chat"></label><label class="setting"><span>Model</span><input id="sbModel" value="${esc(db.settings.aiModel||'')}" placeholder="Optional model name"></label><div class="notice">Local mode works offline. A custom endpoint is optional and only used when you configure it.</div></div>
+ <div class="actions"><button class="btn" onclick="saveSukoonBotSettings()">Save bot settings</button><button class="btn secondary" onclick="openSukoon()">Back to chat</button></div></div>`;
+ m.style.display='block';
+}
+function saveSukoonBotSettings(){
+ db.settings.sukoonBotEnabled=$("sbEnabled").checked;
+ db.settings.sukoonBotName=$("sbName").value.trim()||'Sukoon.Brain';
+ db.settings.sukoonDefaultMode=$("sbMode").value;
+ db.settings.sukoonContext=$("sbContext").checked;
+ db.settings.aiProvider=$("sbProvider").value;
+ db.settings.aiEndpoint=$("sbEndpoint").value.trim();
+ db.settings.aiModel=$("sbModel").value.trim();
+ localStorage.setItem(KEY,JSON.stringify(db));
+ openSukoon();
+}
+
 async function sendSukoon(){
  const input=$("sukoonInput"); if(!input)return; const text=input.value.trim(); if(!text)return;
  const mode=((($("sukoonMode")?.textContent||'Mode: Listen').replace('Mode: ','')||'Listen'));
@@ -278,7 +309,7 @@ async function sukoonProviderReply(mode,text,chat){
  const endpoint=(db.settings?.aiEndpoint||'').trim();
  if(!endpoint || (db.settings?.aiProvider||'local')==='local') return sukoonLocalReply(mode,text);
  const recent=chat.slice(-12).map(x=>({role:x.role==='assistant'?'assistant':'user',content:x.text}));
- const system=`You are Sukoon.Brain inside ScienceHub. You are a warm, calm, privacy-first companion and understanding layer. Respond only to what the user expresses and permitted ScienceHub context. Do not claim mind-reading, diagnosis, or human identity. Help with reflection, study, planning, and practical next actions. Current mode: ${mode}. ${sukoonContext()}`;
+ const system=`You are ${db.settings?.sukoonBotName||'Sukoon.Brain'} inside ScienceHub. You are a warm, calm, privacy-first companion and understanding layer. Respond only to what the user expresses and permitted ScienceHub context. Do not claim mind-reading, diagnosis, or human identity. Help with reflection, study, planning, and practical next actions. Current mode: ${mode}. ${sukoonContext()}`;
  const res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:db.settings?.aiModel||'',messages:[{role:'system',content:system},...recent],mode,context:sukoonContext()})});
  if(!res.ok) throw new Error('AI endpoint '+res.status);
  const data=await res.json();
@@ -457,7 +488,7 @@ function exportData(silent){db.step9.lastBackup=new Date().toISOString();db.step
 function importData(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const incoming=normalise(JSON.parse(r.result));if(!confirm('Replace current local ScienceHub data with this backup?'))return;db=incoming;save('backup-import');alert('Backup imported.') }catch(e){alert('Invalid backup file.')}};r.readAsText(f)};i.click()}
 function openSettings(){
  const q=db.settings.quiet!==false;
- $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>⚙️ Settings</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Local-first • PWA • user-controlled data</p><label class="setting"><input type="checkbox" ${q?'checked':''} onchange="setSetting('quiet',this.checked)"> Quiet Mode preference</label><label class="setting"><input type="checkbox" ${db.settings.sukoonContext!==false?'checked':''} onchange="setSetting('sukoonContext',this.checked)"> Allow Sukoon.Brain to use permitted ScienceHub context</label><label class="setting"><span>Camera Mode</span><select onchange="setSetting('cameraMode',this.value)"><option ${db.settings.cameraMode==='off'?'selected':''}>off</option><option ${db.settings.cameraMode==='preview'?'selected':''}>preview</option><option ${db.settings.cameraMode==='capture'?'selected':''}>capture</option></select></label><div class="notice section">ScienceHub can store the preference, but a web page cannot silently control phone-level calls or notifications.</div><div class="card section"><div class="eyebrow">SUKOON AI BRIDGE</div><p class="muted">Local mode works offline. For ChatGPT-like generative replies, configure your own compatible server endpoint; no secret key is stored here.</p><label class="setting"><span>Provider</span><select onchange="setSetting('aiProvider',this.value)"><option value="local" ${db.settings.aiProvider==='local'?'selected':''}>Local</option><option value="endpoint" ${db.settings.aiProvider==='endpoint'?'selected':''}>Custom endpoint</option></select></label><label class="setting"><span>AI endpoint</span><input value="${esc(db.settings.aiEndpoint||'')}" placeholder="https://your-server.example/chat" onchange="setSetting('aiEndpoint',this.value)"></label><label class="setting"><span>Model name</span><input value="${esc(db.settings.aiModel||'')}" placeholder="Optional model name" onchange="setSetting('aiModel',this.value)"></label></div><div class="actions"><button class="btn" onclick="exportData(false)">Export Backup</button><button class="btn secondary" onclick="closeModal()">Close</button></div></div>`;$("modal").style.display='block'}
+ $("modal").innerHTML=`<div class="modalbox"><div class="row"><h2>⚙️ Settings</h2><button class="iconbtn" onclick="closeModal()">✕</button></div><p class="muted">Local-first • PWA • user-controlled data</p><label class="setting"><input type="checkbox" ${q?'checked':''} onchange="setSetting('quiet',this.checked)"> Quiet Mode preference</label><label class="setting"><input type="checkbox" ${db.settings.sukoonContext!==false?'checked':''} onchange="setSetting('sukoonContext',this.checked)"> Allow Sukoon.Brain to use permitted ScienceHub context</label><label class="setting"><span>Camera Mode</span><select onchange="setSetting('cameraMode',this.value)"><option ${db.settings.cameraMode==='off'?'selected':''}>off</option><option ${db.settings.cameraMode==='preview'?'selected':''}>preview</option><option ${db.settings.cameraMode==='capture'?'selected':''}>capture</option></select></label><div class="notice section">ScienceHub can store the preference, but a web page cannot silently control phone-level calls or notifications.</div><div class="card section"><div class="eyebrow">SUKOON AI BRIDGE</div><p class="muted">Local mode works offline. For ChatGPT-like generative replies, configure your own compatible server endpoint; no secret key is stored here.</p><label class="setting"><span>Provider</span><select onchange="setSetting('aiProvider',this.value)"><option value="local" ${db.settings.aiProvider==='local'?'selected':''}>Local</option><option value="endpoint" ${db.settings.aiProvider==='endpoint'?'selected':''}>Custom endpoint</option></select></label><label class="setting"><span>AI endpoint</span><input value="${esc(db.settings.aiEndpoint||'')}" placeholder="https://your-server.example/chat" onchange="setSetting('aiEndpoint',this.value)"></label><label class="setting"><span>Model name</span><input value="${esc(db.settings.aiModel||'')}" placeholder="Optional model name" onchange="setSetting('aiModel',this.value)"></label></div><div class="card section"><div class="eyebrow">SUKOON.BRAIN AI BOT</div><p class="muted">Configure the in-app companion chat directly from ScienceHub.</p><label class="setting"><input type="checkbox" ${db.settings.sukoonBotEnabled!==false?'checked':''} onchange="setSetting('sukoonBotEnabled',this.checked)"> Enable Sukoon.Brain bot</label><label class="setting"><span>Bot name</span><input value="${esc(db.settings.sukoonBotName||'Sukoon.Brain')}" maxlength="40" onchange="setSetting('sukoonBotName',this.value)"></label><label class="setting"><span>Default chat mode</span><select onchange="setSetting('sukoonDefaultMode',this.value)"><option ${db.settings.sukoonDefaultMode==='Listen'?'selected':''}>Listen</option><option ${db.settings.sukoonDefaultMode==='Reflect'?'selected':''}>Reflect</option><option ${db.settings.sukoonDefaultMode==='Analyze'?'selected':''}>Analyze</option><option ${db.settings.sukoonDefaultMode==='Act'?'selected':''}>Act</option></select></label></div><div class="actions"><button class="btn" onclick="exportData(false)">Export Backup</button><button class="btn secondary" onclick="closeModal()">Close</button></div></div>`;$("modal").style.display='block'}
 function setSetting(k,v){db.settings[k]=v;localStorage.setItem(KEY,JSON.stringify(db))}
 function closeModal(){$("modal").style.display='none'}
 function aiRole(role){const messages={KuroVen:"Action taker: choose one small useful action and start it now.",Hikaitage:"Learning strategist with a 30+ years teaching-style approach: connect where, what, how, why and when before you act.",HukoVaige:"Psychology lens with a 45+ years psychologist-style approach: notice patterns, curiosity, growth and the reality of what is helping or blocking you."};alert(`${role}\n\n${messages[role]||"Choose a role."}`)}
