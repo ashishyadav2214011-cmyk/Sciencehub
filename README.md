@@ -1,28 +1,21 @@
-# ScienceHub V84 — Final Functional Consolidation
+# ScienceHub V93 — Master Integrated
 
-Personal Study OS for Ashu.Ayansh.
+Personal-use Study OS for Ashu.Ayansh.
 
-## What this build fixes
-- One active runtime (`js/app.js`); no legacy `app-step9.js` loading.
-- Home Hero is a real visible image using the supplied studying-space artwork.
-- Assets are organized under `assets/brand`, `assets/hero`, and `assets/companion`.
-- UPMSP 2026–27 syllabus and PYQ 2020–2026 registry are retained.
-- An embedded syllabus fallback makes the app usable even when browser `fetch()` of local JSON is blocked.
-- Existing local study data is preserved; missing Class 11 syllabus tracking sections are added during migration.
-- Subjects shows actual syllabus-section counts and tracked progress.
-- Sukoon.Brain has persistent local conversation plus optional custom AI endpoint support.
-- PWA/offline cache is V84-specific.
+## Core loop
+Understand → Practice → Measure → Improve → Execute
 
-## Run
-### GitHub Pages
-Upload the contents of this folder to the root of the `Sciencehub` repository. Keep folders intact.
+## Integrated model
+UPMSP 2026–27 → Class → Subject → Section → Topic → Learning → Practice → Mistake → Revision → Progress → Time Tracking → Next Best Action → Sukoon.Brain
 
-### Direct Android file opening
-Open `index.html` in a browser. Core UI and syllabus fallback work without requiring the JSON fetch. Service-worker/PWA features require a web origin such as GitHub Pages.
+## Included
+- Class 11 + 12 UPMSP syllabus source data
+- Subject/section/topic sync
+- Study, learning, practice, revision, progress, time tracking, My Space, School, PCB opportunities and Exam Tracker shells
+- Sukoon.Brain local chat with icon, Listen/Reflect/Analyze/Act modes and bot settings
+- KuroVen, Hikaitage, HukoVaige and Aui/WORLD AI role entry points
+- PWA/offline-first local storage
+- Backup and recovery
 
 ## Important
-This package does not contain a hidden ChatGPT model or secret API key. Sukoon's generative mode requires a compatible endpoint configured in Settings.
-
-
-## V89 deep fix
-Runtime/cache version is V89. Subjects is generated directly from the UPMSP dataset and stale same-origin ScienceHub service-worker caches are cleared before the V89 worker is registered.
+Current live web content such as fresh exam/opportunity information and generative AI responses require internet/external services. This package does not pretend those are fully live when they are not.

@@ -1,4 +1,3 @@
-ScienceHub V92 — Refined + Integrated
-Core: Understand → Practice → Measure → Improve → Execute
-Scope: Home redesign + syllabus/topic integration + Study OS feedback loop + Sukoon.Brain context layer
-Status: package-ready; live deployment must be verified separately.
+ScienceHub V93 — Master Integrated
+Personal Study OS for Ashu.Ayansh
+Build: SCIENCEHUB-V93-MASTER-INTEGRATED
