@@ -1,7 +1,3 @@
-# ScienceHub V91 — Full Audit + Syllabus Sync
-
-This package uses the embedded UPMSP 2026–27 dataset as the immediate offline source and refreshes it from the packaged JSON when available. Subjects displays syllabus counts directly from that source and reports linked Study data counts.
-
 # ScienceHub V84 — Final Functional Consolidation
 
 Personal Study OS for Ashu.Ayansh.
