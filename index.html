@@ -1,19 +1,4 @@
 <!doctype html>
-<script>
-// ScienceHub V93.2 cache recovery: remove stale app shells without touching user study data.
-(async()=>{
-  const KEY='sciencehub-v93.2-cache-recovery';
-  if(sessionStorage.getItem(KEY)==='1') return;
-  try{
-    const regs=await navigator.serviceWorker?.getRegistrations?.()||[];
-    for(const r of regs){try{await r.unregister()}catch(e){}}
-    const names=await caches?.keys?.()||[];
-    for(const n of names){if(/^sciencehub-/i.test(n)||/^sciencehub/i.test(n)){try{await caches.delete(n)}catch(e){}}}
-    sessionStorage.setItem(KEY,'1');
-    if(location.search.indexOf('fresh=1')<0){location.replace(location.pathname+'?fresh=1');}
-  }catch(e){}
-})();
-</script>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -24,12 +9,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./assets/brand/sciencehub-icon-192.png" type="image/png">
-<link rel="stylesheet" href="./css/style.css">
+<link rel="stylesheet" href="./style.css">
 <title>ScienceHub — Ashu.Ayansh</title>
 </head>
 <body>
-<header class="topbar" data-build="V93.1-MASTER-INTEGRATED">
-  <button class="brand" onclick="go('home')" aria-label="ScienceHub Home"><span class="brand-live-icon" title="ScienceHub live quantum genetics icon — Quantum Genetics Engine"><canvas id="brandIconCanvas" aria-label="Animated ScienceHub quantum genetics icon"></canvas></span><b>ScienceHub</b></button>
+<header class="topbar" data-build="V94-VOICE-CAMERA-RECALL">
+  <button class="brand" onclick="go('home')" aria-label="ScienceHub Home">
+    <span class="brand-live-icon"><canvas id="brandIconCanvas" aria-label="Animated ScienceHub icon"></canvas></span>
+    <b>ScienceHub</b>
+  </button>
   <div class="user">Ashu.Ayansh</div>
   <button class="iconbtn" onclick="openSettings()" aria-label="Settings">⚙️</button>
 </header>
@@ -44,6 +32,7 @@
 <div id="drawer" aria-hidden="true"></div>
 <div id="modal" role="dialog" aria-modal="true"></div>
 <script src="./data/syllabus-fallback.js"></script>
-<script src="./js/app.js?v=93.1" defer></script>
+<script src="./app.js?v=94.0" defer></script>
+<script src="./sciencehub-enhancements.js?v=94.0" defer></script>
 </body>
 </html>
