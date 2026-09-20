@@ -1,4 +1,19 @@
 <!doctype html>
+<script>
+// ScienceHub V93.2 cache recovery: remove stale app shells without touching user study data.
+(async()=>{
+  const KEY='sciencehub-v93.2-cache-recovery';
+  if(sessionStorage.getItem(KEY)==='1') return;
+  try{
+    const regs=await navigator.serviceWorker?.getRegistrations?.()||[];
+    for(const r of regs){try{await r.unregister()}catch(e){}}
+    const names=await caches?.keys?.()||[];
+    for(const n of names){if(/^sciencehub-/i.test(n)||/^sciencehub/i.test(n)){try{await caches.delete(n)}catch(e){}}}
+    sessionStorage.setItem(KEY,'1');
+    if(location.search.indexOf('fresh=1')<0){location.replace(location.pathname+'?fresh=1');}
+  }catch(e){}
+})();
+</script>
 <html lang="en">
 <head>
 <meta charset="utf-8">

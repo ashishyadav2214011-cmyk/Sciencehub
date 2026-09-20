@@ -1,4 +1,4 @@
-const CACHE="sciencehub-v93-1-master-integrated";
+const CACHE="sciencehub-v93-2-cache-recovery";
 const ASSETS=[
  "./","./index.html","./css/style.css","./js/app.js","./data/syllabus-fallback.js","./manifest.json",
  "./assets/brand/sciencehub-icon.svg","./assets/brand/sciencehub-icon-192.png","./assets/brand/sciencehub-icon-512.png",

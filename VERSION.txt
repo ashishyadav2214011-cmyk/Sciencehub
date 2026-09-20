@@ -1,2 +1,2 @@
-ScienceHub V93.1 — Master Integrated Deploy
-Build: SCIENCEHUB-V93.1-MASTER-INTEGRATED
+ScienceHub V93.2 — Master Integrated Deploy
+Build: SCIENCEHUB-V93.2-MASTER-INTEGRATED
