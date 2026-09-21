@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#38e8a2"/><stop offset="1" stop-color="#61d8ff"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="256" height="256" rx="52" fill="#071522"/><circle cx="128" cy="128" r="92" fill="none" stroke="#38e8a2" stroke-opacity=".18" stroke-width="2"/><g stroke="url(#g)" fill="none" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"><path d="M82 48c70 38 70 122 0 160"/><path d="M174 48c-70 38-70 122 0 160"/><path d="M92 66h72M79 94h98M78 122h100M79 150h98M92 178h72"/></g><g fill="#61d8ff"></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-label="DNA & Genetics">
+<rect x="8" y="8" width="304" height="204" rx="28" fill="#0b1a2b" stroke="#61d8ff" stroke-width="3"/>
+<circle cx="160" cy="92" r="58" fill="#112a40" stroke="#61d8ff" stroke-width="2"/>
+<text x="160" y="112" text-anchor="middle" font-size="62" font-family="Arial, sans-serif" fill="#ffffff">🧬</text>
+<text x="160" y="165" text-anchor="middle" font-size="20" font-family="Arial, sans-serif" fill="#ffffff">DNA & Genetics</text>
+<text x="160" y="190" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" fill="#9fc7da">Genetics / inheritance</text>
+</svg>
