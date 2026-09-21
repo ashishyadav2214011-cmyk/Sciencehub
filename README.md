@@ -1,4 +1,6 @@
-# ScienceHub V100 — Integrated Build
+# ScienceHub V101 — Restore + Integrated Build
+
+V100 runtime preserved; V101 adds safe restoration/integration layers.
 
 This is a clean, dependency-free, local-first ScienceHub build intended for GitHub Pages/PWA use.
 
