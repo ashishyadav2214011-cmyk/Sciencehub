@@ -1,0 +1,11 @@
+{
+  "release": "ScienceHub V74-V95 Master Integration",
+  "liveVersion": "V95",
+  "baseRuntime": "V93.1-Master-Integrated",
+  "lineage": {"from": "V74", "to": "V95", "strategy": "cumulative"},
+  "versionRecords": "versions/V74..V95/VERSION.md",
+  "liveEntry": "index.html",
+  "requiredExistingCore": ["app.js", "style.css"],
+  "integratedLayers": ["sciencehub-v95-integration.js", "sciencehub-perspective.js", "perspective.css", "sciencehub-enhancements.js", "sciencehub-live-icon.js", "sciencehub-live-icon.css", "sw.js", "manifest.json"],
+  "note": "Historical V74-V81 executable patches are not fabricated when absent from the current repository snapshot. Existing repository changelogs/audits are referenced by version records."
+}
