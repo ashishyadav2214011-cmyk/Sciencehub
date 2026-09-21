@@ -1,5 +1,53 @@
-const CACHE="sciencehub-v95-master-cache";
-const ASSETS=["./","./index.html","./style.css","./app.js","./sciencehub-v95-integration.js","./sciencehub-perspective.js","./perspective.css","./sciencehub-enhancements.js","./sciencehub-live-icon.js","./sciencehub-live-icon.css","./manifest.json","./assets/brand/sciencehub-icon-192.png","./assets/brand/sciencehub-icon-512.png"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).then(r=>{const cp=r.clone();caches.open(CACHE).then(x=>x.put(e.request,cp)).catch(()=>{});return r}).catch(()=>caches.match("./index.html"))))});
+/* ScienceHub V96 — update-safe service worker */
+const CACHE = "sciencehub-v96-cache";
+const CORE = [
+  "./","./index.html","./style.css","./manifest.json","./app.js",
+  "./sciencehub-v95-integration.js","./sciencehub-perspective.js","./perspective.css",
+  "./sciencehub-enhancements.js","./sciencehub-live-icon.js","./sciencehub-live-icon.css",
+  "./sciencehub-v96-repair.js"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(CORE).catch(()=>{}))
+      .then(()=>self.skipWaiting())
+  );
+});
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k=>k.startsWith("sciencehub-") && k!==CACHE).map(k=>caches.delete(k)))
+    ).then(()=>self.clients.claim())
+  );
+});
+
+function isRuntime(request) {
+  const u = new URL(request.url);
+  return u.pathname.endsWith(".html") || u.pathname.endsWith(".js") ||
+         u.pathname.endsWith(".css") || u.pathname.endsWith(".json") ||
+         u.pathname.endsWith("/manifest.json");
+}
+
+self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
+  const request = event.request;
+
+  if (request.mode === "navigate" || isRuntime(request)) {
+    event.respondWith(
+      fetch(request,{cache:"no-store"}).then(response=>{
+        const copy=response.clone();
+        caches.open(CACHE).then(c=>c.put(request,copy)).catch(()=>{});
+        return response;
+      }).catch(()=>caches.match(request).then(c=>c||caches.match("./index.html")))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request).then(cached=>cached||fetch(request).then(response=>{
+      const copy=response.clone();
+      caches.open(CACHE).then(c=>c.put(request,copy)).catch(()=>{});
+      return response;
+    })).catch(()=>caches.match("./index.html"))
+  );
+});
