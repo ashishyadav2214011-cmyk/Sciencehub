@@ -1,0 +1,21 @@
+{
+  "phase": 4,
+  "version": "UGAI-P4.0.0",
+  "name": "Upgrade Guard AI \u2014 Data, PWA & Migration Guard",
+  "behaviors": [
+    "Phase 3 regression guard retained",
+    "local data integrity audit",
+    "ScienceHub database presence and parse checks",
+    "localStorage integrity checks",
+    "backup manifest and restore-point metadata",
+    "migration dry-run gate",
+    "schema-change risk gate",
+    "service-worker registration audit",
+    "cache storage audit",
+    "offline capability checks",
+    "PWA asset reachability checks",
+    "freeze blocked when data/PWA/migration validation fails",
+    "user-controlled destructive actions",
+    "no credentials, no remote commits, no silent external actions"
+  ]
+}
