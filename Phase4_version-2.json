@@ -1,0 +1,7 @@
+{
+  "phase": 4,
+  "version": "UGAI-P4.0.0",
+  "previous": "UGAI-P3.0.0",
+  "status": "data-pwa-migration-guard-ready",
+  "freezePolicy": "validate-before-freeze"
+}
