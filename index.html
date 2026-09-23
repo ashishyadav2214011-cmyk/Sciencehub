@@ -11,7 +11,8 @@
 <link rel="stylesheet" href="./perspective.css?v=102.0">
 <link rel="stylesheet" href="./sciencehub-live-icon.css?v=102.0">
 <link rel="stylesheet" href="./sciencehub-v102-repair.css?v=102.0">
-<title>ScienceHub — V102 Repair Integrated</title>
+<link rel="stylesheet" href="./core/upgrade-guard-ai.css?v=2.0">
+<title>ScienceHub — Upgrade Guard AI Phase 2</title>
 </head>
 <body>
 <header class="top">
@@ -28,6 +29,11 @@
 <button id="moreBtn">☰<small>More</small></button>
 </nav>
 <div id="drawer"></div><div id="modal"></div>
+
+<!-- Upgrade Guard AI is loaded before the ScienceHub runtime so it is available by default. -->
+<script src="./upgrade-guard-ai.js?v=2.0"></script>
+<script src="./core/sciencehub-upgrade-bridge.js?v=2.0"></script>
+
 <script src="./app.js?v=102.0"></script>
 <script src="./sciencehub-enhancements.js?v=102.0"></script>
 <script src="./sciencehub-perspective.js?v=102.0"></script>

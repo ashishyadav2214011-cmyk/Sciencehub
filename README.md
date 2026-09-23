@@ -1,31 +1,25 @@
-# ScienceHub — Upgrade Guard AI P1
+# ScienceHub Upgrade Guard AI — Phase 2
 
-Upload-ready Upgrade Guard AI foundation.
+Upload-ready Phase 2 package.
 
-## Included
-- runtime audit
-- manifest validation
-- safe-path and duplicate checks
-- SHA-256 helper
-- upgrade queue
-- user permission matrix: ALLOW / ASK_FIRST / DENY
-- checkpoints
-- rollback
-- phase freeze guard (failed validation cannot freeze)
-- audit/history log
-- JSON Guard backup export
-- ScienceHub bridge
-- mobile-friendly Control Room
+## Phase rule
+**Test → Validate → Freeze → Next phase.**
 
-## Install in ScienceHub
-Add:
-```html
-<link rel="stylesheet" href="./upgrade-guard-ai/core/upgrade-guard-ai.css">
-<script src="./upgrade-guard-ai/core/upgrade-guard-ai.js"></script>
-<script src="./upgrade-guard-ai/core/sciencehub-upgrade-bridge.js"></script>
-```
+## What Phase 2 adds
+- Runtime integration bridge
+- Upgrade Guard permission controls
+- Upgrade queue + user decisions
+- Checkpoint and rollback
+- Runtime validation/audit
+- Phase registration and freeze gate
+- Persistent history and backup export
+- Mobile-friendly Control Room
 
-Open `control-room.html` to inspect the Guard.
+## Upload
+Copy the package contents into the ScienceHub repository root, preserving the `core/` folder. Do not delete existing ScienceHub files.
 
-## Governance
-The Guard can govern the runtime and files/data actually supplied to it. It does not obtain GitHub credentials, bypass permissions, or silently commit to a remote repository. Remote repository actions remain explicitly authorized external operations.
+## Important
+This package does not contain GitHub credentials and cannot silently commit/push to GitHub. Repository upload remains a user-authorized action.
+
+## Control Room
+After upload, open `control-room.html` on the deployed site.

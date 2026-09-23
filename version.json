@@ -1,1 +1,9 @@
-{"product":"ScienceHub","component":"Upgrade Guard AI","phase":1,"version":"UGAI-P1.0.0","previous":"BASE","status":"package-validated"}
+{
+  "product": "ScienceHub",
+  "component": "Upgrade Guard AI",
+  "phase": 2,
+  "version": "UGAI-P2.0.0",
+  "previous": "UGAI-P1.0.0",
+  "status": "upload-ready",
+  "freeze_rule": "test -> validate -> freeze -> next phase"
+}

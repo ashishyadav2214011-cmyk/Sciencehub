@@ -1,1 +1,23 @@
-{"phase":1,"version":"UGAI-P1.0.0","previous":"BASE","requiredChecks":["manifest","paths","json","permissions","storage","runtime"],"files":["core/upgrade-guard-ai.js","core/upgrade-guard-ai.css","core/sciencehub-upgrade-bridge.js","control-room.html","README.md","version.json","phase-manifest.json"]}
+{
+  "phase": 2,
+  "version": "UGAI-P2.0.0",
+  "required_files": [
+    "upgrade-guard-ai.js",
+    "core/sciencehub-upgrade-bridge.js",
+    "core/upgrade-guard-ai.css",
+    "control-room.html",
+    "version.json",
+    "phase-manifest.json"
+  ],
+  "behavior": [
+    "runtime audit",
+    "permission control",
+    "upgrade queue",
+    "checkpoint",
+    "rollback",
+    "phase freeze",
+    "history",
+    "backup export"
+  ],
+  "privacy": "No GitHub credentials or remote commits; repository actions require external authorization."
+}
