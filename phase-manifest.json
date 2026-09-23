@@ -1,0 +1,1 @@
+{"phase":1,"version":"UGAI-P1.0.0","previous":"BASE","requiredChecks":["manifest","paths","json","permissions","storage","runtime"],"files":["core/upgrade-guard-ai.js","core/upgrade-guard-ai.css","core/sciencehub-upgrade-bridge.js","control-room.html","README.md","version.json","phase-manifest.json"]}

@@ -1,42 +1,31 @@
-# ScienceHub V101 — Restore + Integrated Build
+# ScienceHub — Upgrade Guard AI P1
 
-V100 runtime preserved; V101 adds safe restoration/integration layers.
+Upload-ready Upgrade Guard AI foundation.
 
-This is a clean, dependency-free, local-first ScienceHub build intended for GitHub Pages/PWA use.
+## Included
+- runtime audit
+- manifest validation
+- safe-path and duplicate checks
+- SHA-256 helper
+- upgrade queue
+- user permission matrix: ALLOW / ASK_FIRST / DENY
+- checkpoints
+- rollback
+- phase freeze guard (failed validation cannot freeze)
+- audit/history log
+- JSON Guard backup export
+- ScienceHub bridge
+- mobile-friendly Control Room
 
-## Integrated systems
-- Central localStorage Study OS database with schema/app migration markers
-- Class 11 subjects: Biology, Physics, Chemistry, English, Hindi
-- Subject/chapter status system
-- Real-time study timer + saved study sessions
-- Daily task system
-- Live Recall with Good +2 / Bad -1
-- Review queue
-- Practice questions + scoring
-- Mistake/activity records
-- Notes
-- Progress/intelligence dashboard
-- Global Home search
-- Voice input where browser supports SpeechRecognition
-- Text-to-voice via speechSynthesis
-- Camera preview/capture
-- Sukoon.Brain local companion chat
-- KuroVen / Hikaitage / HukoVaige role center
-- Perspective setting
-- My Space + backup/import
-- PCB Opportunities
-- WORLD / Aui local notes
-- Native share-ready data model through export/shareable JSON
-- PWA manifest + update-safe service worker
-- Offline-safe application shell
-- Live orbital ScienceHub header animation
+## Install in ScienceHub
+Add:
+```html
+<link rel="stylesheet" href="./upgrade-guard-ai/core/upgrade-guard-ai.css">
+<script src="./upgrade-guard-ai/core/upgrade-guard-ai.js"></script>
+<script src="./upgrade-guard-ai/core/sciencehub-upgrade-bridge.js"></script>
+```
 
-## Important scope boundaries
-- Fresh web/world information needs an internet-connected source.
-- Browser speech/camera capabilities depend on the device/browser and permissions.
-- Camera capture is capture-only in this build; OCR/image understanding is not falsely claimed.
-- The launcher/PWA icon is static; the live orbital animation is inside the app UI.
-- This build contains the integrated architecture and functional core. Large external PYQ/syllabus datasets can be imported separately without changing the core database design.
+Open `control-room.html` to inspect the Guard.
 
-## Safe update principle
-The service worker uses a versioned cache and network-first handling for HTML/JS/CSS/JSON runtime files. User localStorage data is not cleared by the service worker.
+## Governance
+The Guard can govern the runtime and files/data actually supplied to it. It does not obtain GitHub credentials, bypass permissions, or silently commit to a remote repository. Remote repository actions remain explicitly authorized external operations.

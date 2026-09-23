@@ -1,0 +1,52 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 1004,
+    "sha256": "4cb7fdc3233670d1bc3345facc8206cbf085efc2011b8d8ce1c5227c6ec64ee2"
+  },
+  {
+    "path": "control-room.html",
+    "bytes": 2982,
+    "sha256": "2d06590ef3a4180cd918434248b5182aeb6dfc9928d946378fc356b756f1676d"
+  },
+  {
+    "path": "core/sciencehub-upgrade-bridge.js",
+    "bytes": 586,
+    "sha256": "f1003668b01cb3e01af7aebeaf8db18e60e6c088b701b6a32d6146b278cb9a29"
+  },
+  {
+    "path": "core/upgrade-guard-ai.css",
+    "bytes": 933,
+    "sha256": "de16f031f5479dbbdf3a799866f5bae0a75e6d99efbec035b051c4f176312eed"
+  },
+  {
+    "path": "core/upgrade-guard-ai.js",
+    "bytes": 4860,
+    "sha256": "90e6bbfe1ca4ce678ce56eb9bfb8eb0836e1bab7c9bfcf3624e05677c66094cc"
+  },
+  {
+    "path": "docs/ARCHITECTURE.md",
+    "bytes": 484,
+    "sha256": "a26919a90aa14daf4880457c6b376804d07ccebcc1ed621fca4bb98d88600f0a"
+  },
+  {
+    "path": "docs/UPLOAD_UPDATE_WORKFLOW.md",
+    "bytes": 384,
+    "sha256": "5279de8624835759ab8936c55b45b02a5eb08e5b26c0bb13a1e718ca9ae41610"
+  },
+  {
+    "path": "docs/VALIDATION_MATRIX.md",
+    "bytes": 296,
+    "sha256": "69a7ec6588dd3571e5d0c3feda12105cb85f8ee08d9aadc0ff3ad9e06cf647c7"
+  },
+  {
+    "path": "phase-manifest.json",
+    "bytes": 303,
+    "sha256": "fb164762ea2a35363678f53700a4af262f91410d262e456842085e73fe929d00"
+  },
+  {
+    "path": "version.json",
+    "bytes": 137,
+    "sha256": "3422f85eac25e7dff0d019383e696e1752306650c66e8631a1028861b4dc6c40"
+  }
+]
