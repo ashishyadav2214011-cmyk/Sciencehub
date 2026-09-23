@@ -1,10 +1,13 @@
 {
-  "phase": 2,
-  "version": "UGAI-P2.0.0",
+  "phase": 3,
+  "version": "UGAI-P3.0.0",
   "required_files": [
     "upgrade-guard-ai.js",
     "core/sciencehub-upgrade-bridge.js",
     "core/upgrade-guard-ai.css",
+    "core/upgrade-guard-ai-phase3.js",
+    "core/phase3-regression.js",
+    "core/phase3-bridge.js",
     "control-room.html",
     "version.json",
     "phase-manifest.json"
@@ -17,7 +20,14 @@
     "rollback",
     "phase freeze",
     "history",
-    "backup export"
+    "backup export",
+    "module inventory",
+    "script/style/link integrity scan",
+    "duplicate runtime detection",
+    "regression test suite",
+    "baseline snapshot",
+    "impact report",
+    "freeze gate"
   ],
-  "privacy": "No GitHub credentials or remote commits; repository actions require external authorization."
+  "privacy": "Local browser checks only; no credentials, no remote commits, no silent external actions."
 }
