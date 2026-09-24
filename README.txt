@@ -1,7 +1,13 @@
-ScienceHub — Phase 1–5 Combined Package
+ScienceHub — Phase 1 From Zero
 
-This ZIP combines the currently available Phase 1–5 deliverable into one upload package.
-Main deliverable: SukoonBrain_Live_Integrated.html
-Source image: 1000017753.png
+Purpose:
+A clean standalone Phase 1 foundation for ScienceHub.
 
-Note: The available runtime artifact is the integrated Sukoon.Brain file; this package does not claim to contain unseen/full repository code for phases that are not present in the runtime.
+Included:
+- index.html: functional offline-first foundation
+- PCB subjects: Biology, Physics, Chemistry, English, Hindi
+- User-controlled AI permission (OFF by default)
+- Local progress using browser localStorage
+- No external libraries/CDNs
+
+This is a fresh Phase 1 foundation. It is not a claim that the unavailable historical P1 ZIP was recovered byte-for-byte.

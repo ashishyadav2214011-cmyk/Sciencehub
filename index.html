@@ -1,46 +1,28 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07101c">
-<meta name="application-name" content="ScienceHub">
-<link rel="manifest" href="./manifest.json?v=102.0">
-<link rel="stylesheet" href="./style.css?v=102.0">
-<link rel="stylesheet" href="./sciencehub-v101.css?v=102.0">
-<link rel="stylesheet" href="./perspective.css?v=102.0">
-<link rel="stylesheet" href="./sciencehub-live-icon.css?v=102.0">
-<link rel="stylesheet" href="./sciencehub-v102-repair.css?v=102.0">
-<link rel="stylesheet" href="./core/upgrade-guard-ai.css?v=2.0">
-<title>ScienceHub — Upgrade Guard AI Phase 3</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScienceHub — Phase 1 Foundation</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#07111f;color:#eef6ff}button{font:inherit;cursor:pointer}.wrap{max-width:1100px;margin:auto;padding:22px}.hero{padding:28px;border:1px solid #28415c;border-radius:24px;background:linear-gradient(145deg,#0d2035,#0a1727);box-shadow:0 18px 50px #0005}.brand{display:flex;align-items:center;gap:14px}.logo{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:#102d49;font-size:30px}.tag{color:#9ec7ed}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-top:20px}.card{padding:18px;border:1px solid #29445e;border-radius:18px;background:#0b1b2c}.card h3{margin:0 0 7px}.card p{margin:0;color:#a9bfd4}.section{margin-top:18px;padding:20px;border:1px solid #29445e;border-radius:20px;background:#091a2b}.row{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid #386083;background:#102a42;color:#fff;padding:10px 14px;border-radius:12px}.btn.primary{background:#1c4e77}.status{margin-top:12px;color:#9fd6aa}.small{font-size:13px;color:#91aac0}.list{padding-left:20px}.footer{padding:24px 0;color:#7891a8;text-align:center}
+</style>
 </head>
-<body>
-<header class="top">
-<button class="brand" id="homeBtn"><canvas id="brandCanvas"></canvas><b>ScienceHub</b></button>
-<span class="user">Ashu.Ayansh</span>
-<button class="icon" id="settingsBtn">⚙️</button>
-</header>
-<main id="app"></main>
-<nav class="bottom">
-<button data-go="home">🏠<small>Home</small></button>
-<button data-go="study">📅<small>Study</small></button>
-<button data-go="subjects">📚<small>Subjects</small></button>
-<button data-go="practice">📝<small>Practice</small></button>
-<button id="moreBtn">☰<small>More</small></button>
-</nav>
-<div id="drawer"></div><div id="modal"></div>
-
-<!-- Upgrade Guard AI is loaded before the ScienceHub runtime so it is available by default. -->
-<script src="./upgrade-guard-ai.js?v=2.0"></script>
-<script src="./core/sciencehub-upgrade-bridge.js?v=2.0"></script>
-<script src="./core/phase3-regression.js?v=3.0"></script>
-<script src="./core/upgrade-guard-ai-phase3.js?v=3.0"></script>
-<script src="./core/phase3-bridge.js?v=3.0"></script>
-
-<script src="./app.js?v=102.0"></script>
-<script src="./sciencehub-enhancements.js?v=102.0"></script>
-<script src="./sciencehub-perspective.js?v=102.0"></script>
-<script src="./sciencehub-v101-bridge.js?v=102.0"></script>
-<script src="./sciencehub-v102-repair.js?v=102.0"></script>
-</body>
-</html>
+<body><main class="wrap">
+<section class="hero"><div class="brand"><div class="logo">🧬</div><div><h1 style="margin:0">ScienceHub</h1><div class="tag">Phase 1 — clean foundation, offline-first</div></div></div><p>UPMSP Class 11–12 PCB study foundation with user-controlled settings and local-first persistence.</p><div class="row"><button class="btn primary" onclick="openStudy()">Open Study Area</button><button class="btn" onclick="togglePrivacy()">Privacy / AI Control</button></div><div id="status" class="status">Ready.</div></section>
+<section class="section"><h2>PCB Stream</h2><div class="grid"><article class="card"><h3>🧬 Biology</h3><p>Chapters and topics foundation.</p></article><article class="card"><h3>⚛️ Physics</h3><p>Concept and practice foundation.</p></article><article class="card"><h3>🧪 Chemistry</h3><p>Concept and practice foundation.</p></article><article class="card"><h3>📖 English</h3><p>Study material foundation.</p></article><article class="card"><h3>हिंदी Hindi</h3><p>Study material foundation.</p></article></div></section>
+<section class="section" id="study"><h2>Study Area</h2><p>Select a subject to begin. Progress is stored locally on this device.</p><div class="row"><button class="btn" onclick="saveProgress('Biology')">Start Biology</button><button class="btn" onclick="saveProgress('Physics')">Start Physics</button><button class="btn" onclick="saveProgress('Chemistry')">Start Chemistry</button></div><p class="small" id="progress">No local progress saved yet.</p></section>
+<section class="section" id="privacy"><h2>User Control</h2><ul class="list"><li>AI access is disabled by default.</li><li>Any future AI action requires user permission.</li><li>Core UI remains usable offline.</li><li>Local progress is stored with browser localStorage.</li></ul><button class="btn" onclick="toggleAI()" id="aiBtn">AI permission: OFF</button></section>
+<section class="section"><h2>Phase 1 Foundation</h2><p class="small">This package is intentionally standalone: no external libraries, CDN, or server dependency.</p><div class="row"><button class="btn" onclick="resetLocal()">Reset Local Data</button></div></section>
+<div class="footer">ScienceHub • Phase 1 • standalone foundation</div>
+</main>
+<script>
+const KEY='sciencehub_phase1';let state=JSON.parse(localStorage.getItem(KEY)||'{"ai":false,"subject":null}');
+function persist(){localStorage.setItem(KEY,JSON.stringify(state));render()}
+function render(){document.getElementById('aiBtn').textContent='AI permission: '+(state.ai?'ON':'OFF');document.getElementById('progress').textContent=state.subject?'Current local study subject: '+state.subject:'No local progress saved yet.'}
+function openStudy(){document.getElementById('study').scrollIntoView({behavior:'smooth'})}
+function togglePrivacy(){document.getElementById('privacy').scrollIntoView({behavior:'smooth'})}
+function toggleAI(){state.ai=!state.ai;persist();document.getElementById('status').textContent='AI permission is now '+(state.ai?'ON':'OFF')+' — user controlled.'}
+function saveProgress(s){state.subject=s;persist();document.getElementById('status').textContent=s+' selected. Progress stored locally.'}
+function resetLocal(){localStorage.removeItem(KEY);state={ai:false,subject:null};render();document.getElementById('status').textContent='Local Phase 1 data reset.'}
+render();
+</script></body></html>
