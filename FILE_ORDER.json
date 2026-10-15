@@ -1,0 +1,36 @@
+{
+  "package": "ScienceHub_Repair_Bundle_Ordered",
+  "apply_order": [
+    "00_READ_ME_FIRST.txt",
+    "index.html",
+    "sw.js",
+    "assets/pcb/*.svg",
+    "app.js.patch",
+    "audit/AUDIT_REPORT.md"
+  ],
+  "github_changes_pushed": false,
+  "runtime_tests_complete": false,
+  "files": [
+    "ScienceHub_Repair_Bundle_Ordered/00_READ_ME_FIRST.txt",
+    "ScienceHub_Repair_Bundle_Ordered/index.html",
+    "ScienceHub_Repair_Bundle_Ordered/sw.js",
+    "ScienceHub_Repair_Bundle_Ordered/app.js.patch",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/atom.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/beaker.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/body.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/cell.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/circuit.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/dna.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/flask.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/force.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/heart.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/microscope.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/molecule.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/periodic.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/plant.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/reaction.svg",
+    "ScienceHub_Repair_Bundle_Ordered/assets/pcb/wave.svg",
+    "ScienceHub_Repair_Bundle_Ordered/audit/AUDIT_REPORT.md",
+    "ScienceHub_Repair_Bundle_Ordered/README_APPLY_FIRST.txt"
+  ]
+}

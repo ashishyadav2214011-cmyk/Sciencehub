@@ -1,7 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220" role="img" aria-label="Plant">
-<rect x="8" y="8" width="304" height="204" rx="28" fill="#0b1a2b" stroke="#61d8ff" stroke-width="3"/>
-<circle cx="160" cy="92" r="58" fill="#112a40" stroke="#61d8ff" stroke-width="2"/>
-<text x="160" y="112" text-anchor="middle" font-size="62" font-family="Arial, sans-serif" fill="#ffffff">♣</text>
-<text x="160" y="165" text-anchor="middle" font-size="20" font-family="Arial, sans-serif" fill="#ffffff">Plant</text>
-<text x="160" y="190" text-anchor="middle" font-size="12" font-family="Arial, sans-serif" fill="#9fc7da">Plant physiology / morphology</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" role="img" aria-label="Plant">
+  <rect x="2" y="2" width="68" height="68" rx="15" fill="#0b1a2c" stroke="#2b5772" stroke-width="2"/>
+  <g fill="none" stroke="#61d8ff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path d="M32 63V22M32 37C12 37 10 20 10 16c17 0 24 8 22 21ZM32 46c20 0 23-16 23-21-16 0-24 8-23 21ZM32 27c-10-6-9-17-9-20 12 3 16 11 9 20Z"/></g>
 </svg>
